@@ -1,15 +1,8 @@
 {
   "version": 2,
   "name": "knx-store",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "routes": [
     {
       "src": "/api/(.*)",
@@ -20,12 +13,6 @@
       "dest": "/$1"
     }
   ],
-  "functions": {
-    "src/pages/api/**/*.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   },
