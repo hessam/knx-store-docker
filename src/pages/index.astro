@@ -1,0 +1,109 @@
+---
+// Basic index page for the KNX Store
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNX Store - Development Environment</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .ports {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .port {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #667eea;
+        }
+        .port h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .port p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 KNX Store Development Environment</h1>
+        
+        <div class="status">
+            ✅ <strong>Development server is running successfully!</strong>
+        </div>
+        
+        <p>
+            Welcome to the KNX Store development environment. This is a high-performance e-commerce platform 
+            built with Astro, TypeScript, and modern web technologies.
+        </p>
+        
+        <div class="ports">
+            <div class="port">
+                <h3>🌐 Main App</h3>
+                <p>Port 4001 - Astro Development Server</p>
+            </div>
+            <div class="port">
+                <h3>🔧 API Server</h3>
+                <p>Port 4003 - Backend API Endpoints</p>
+            </div>
+            <div class="port">
+                <h3>📁 Static Files</h3>
+                <p>Port 4004 - Static File Server</p>
+            </div>
+            <div class="port">
+                <h3>🌍 WordPress Proxy</h3>
+                <p>Port 4005 - API Proxy (if enabled)</p>
+            </div>
+        </div>
+        
+        <p>
+            <strong>Next Steps:</strong><br>
+            • Create your first Astro page in <code>src/pages/</code><br>
+            • Add components in <code>src/components/</code><br>
+            • Configure your environment variables in <code>.env</code>
+        </p>
+    </div>
+</body>
+</html> 

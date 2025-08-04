@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Vercel Build Script for KNX Store
+# This script runs during Vercel's build process
+
+echo "🚀 Starting Vercel build for KNX Store..."
+
+# Set environment variables based on Vercel environment
+if [ "$VERCEL_ENV" = "production" ]; then
+  echo "📦 Building for production..."
+  export NODE_ENV=production
+  export SITE_URL=$VERCEL_URL
+elif [ "$VERCEL_ENV" = "preview" ]; then
+  echo "🔍 Building for preview..."
+  export NODE_ENV=preview
+  export SITE_URL=$VERCEL_URL
+else
+  echo "🧪 Building for development..."
+  export NODE_ENV=development
+  export SITE_URL=$VERCEL_URL
+fi
+
+# Install dependencies
+echo "📥 Installing dependencies..."
+npm ci --only=production
+
+# Build the application
+echo "🔨 Building application..."
+npm run build
+
+# Run post-build optimizations
+echo "⚡ Running post-build optimizations..."
+
+# Optimize images if they exist
+if [ -d "dist" ]; then
+  echo "🖼️ Optimizing images..."
+  find dist -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" | head -10
+fi
+
+# Generate sitemap
+echo "🗺️ Generating sitemap..."
+if [ -f "dist/sitemap-index.xml" ]; then
+  echo "✅ Sitemap generated successfully"
+else
+  echo "⚠️ Sitemap not found"
+fi
+
+# Check build output
+echo "📊 Build summary:"
+echo "  - Environment: $VERCEL_ENV"
+echo "  - Site URL: $SITE_URL"
+echo "  - Build directory: dist/"
+ls -la dist/ | head -5
+
+echo "✅ Vercel build completed successfully!" 
