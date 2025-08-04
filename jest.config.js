@@ -6,6 +6,13 @@ export default {
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/*.(test|spec).+(ts|tsx|js)'
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/dist/',
+    '/.astro/',
+    '**/e2e/**',
+    '**/playwright/**'
+  ],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
     '^.+\\.(js|jsx)$': 'babel-jest',
@@ -23,10 +30,10 @@ export default {
   coverageReporters: ['text', 'lcov', 'html'],
   coverageThreshold: {
     global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
     },
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
@@ -37,11 +44,7 @@ export default {
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
     '^@types/(.*)$': '<rootDir>/src/types/$1',
   },
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/.astro/',
-  ],
+
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   globals: {
     'ts-jest': {

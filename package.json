@@ -13,12 +13,12 @@
     "lint": "eslint . --ext .js,.ts,.astro",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "jest",
+    "test": "jest --testPathIgnorePatterns='<rootDir>/tests/e2e/'",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:ui": "vitest --ui",
     "test:smoke": "jest --testPathPattern=smoke",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --config=playwright.config.ts",
     "test:performance": "lhci autorun",
     "api-server": "node api-server.js",
     "build:prod": "astro build && npm run optimize",
@@ -49,7 +49,8 @@
     "stripe": "^14.10.0",
     "tailwindcss": "^3.4.0",
     "woocommerce-api": "^1.5.0",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@rollup/rollup-linux-x64-gnu": "^4.9.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",
