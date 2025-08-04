@@ -1,47 +1,48 @@
 import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
-import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel/serverless';
-import react from '@astrojs/react';
-import mdx from '@astrojs/mdx';
+import node from '@astrojs/node';
 
-// https://astro.build/config
+const isPreview = process.env.NODE_ENV === 'preview';
+const isProduction = process.env.NODE_ENV === 'production';
+
 export default defineConfig({
-  site: 'https://your-knx-store.vercel.app',
-  integrations: [
-    tailwind({
-      config: { path: './tailwind.config.mjs' }
-    }),
-    sitemap({
-      filter: (page) => !page.includes('/api/')
-    }),
-    react(),
-    mdx()
-  ],
-  output: 'hybrid', // Enable both static and server-side rendering
-  adapter: vercel({
-    analytics: true,
-    speedInsights: true,
-    webAnalytics: {
-      enabled: true
-    }
+  output: isPreview ? 'static' : 'server',
+  adapter: isPreview ? undefined : vercel({
+    webAnalytics: { enabled: true }
   }),
-  server: {
-    host: '0.0.0.0',
-    port: 4001
+  
+  // Enhanced configuration for different environments
+  build: {
+    inlineStylesheets: isProduction ? 'auto' : 'never',
   },
+  
   vite: {
-    server: {
-      watch: {
-        usePolling: true // For Docker development
-      }
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
     },
-    optimizeDeps: {
-      include: ['@stripe/stripe-js']
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: isProduction ? {
+            vendor: ['react', 'react-dom'],
+            utils: ['lodash', 'date-fns']
+          } : undefined
+        }
+      }
     }
   },
-  build: {
-    inlineStylesheets: 'auto'
+
+  // Preview-specific configuration
+  preview: {
+    host: isPreview ? '0.0.0.0' : undefined,
+    port: isPreview ? 4001 : undefined
   },
-  compressHTML: true
+
+  // SEO and Performance
+  site: 'https://your-domain.vercel.app',
+  
+  // Enhanced error handling
+  experimental: {
+    serverIslands: false // Disable if causing issues
+  }
 }); 

@@ -3,18 +3,37 @@
   "name": "knx-store",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "github": {
-    "enabled": true,
-    "silent": false
-  },
-  "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "develop": true,
-      "preview": true
+  "installCommand": "npm ci",
+  "devCommand": "npm run dev",
+  "framework": "astro",
+  "functions": {
+    "src/pages/api/*.js": {
+      "runtime": "nodejs18.x"
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
 } 
