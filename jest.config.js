@@ -10,8 +10,8 @@ export default {
     '/node_modules/',
     '/dist/',
     '/.astro/',
-    '**/e2e/**',
-    '**/playwright/**'
+    '.*/e2e/.*',
+    '.*/playwright/.*'
   ],
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
@@ -37,7 +37,7 @@ export default {
     },
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@lib/(.*)$': '<rootDir>/src/lib/$1',
