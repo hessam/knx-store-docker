@@ -1,47 +1,20 @@
 import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel/serverless';
-
-const isPreview = process.env.NODE_ENV === 'preview';
-const isProduction = process.env.NODE_ENV === 'production';
+import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  output: isPreview ? 'static' : 'server',
-  adapter: isPreview ? undefined : vercel({
-    webAnalytics: { enabled: true }
-  }),
+  output: 'static',
+  adapter: undefined,
   
-  // Enhanced configuration for different environments
-  build: {
-    inlineStylesheets: isProduction ? 'auto' : 'never',
-  },
+  integrations: [
+    tailwind()
+  ],
   
   vite: {
     define: {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
-    },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: isProduction ? {
-            vendor: ['react', 'react-dom'],
-            utils: ['lodash', 'date-fns']
-          } : undefined
-        }
-      }
     }
   },
 
-  // Preview-specific configuration
-  preview: {
-    host: isPreview ? '0.0.0.0' : undefined,
-    port: isPreview ? 4001 : undefined
-  },
-
   // SEO and Performance
-  site: 'https://your-domain.vercel.app',
-  
-  // Enhanced error handling
-  experimental: {
-    serverIslands: false // Disable if causing issues
-  }
+  site: 'https://knx-store.vercel.app'
 }); 

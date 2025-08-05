@@ -41,7 +41,6 @@
     "@astrojs/react": "^3.0.10",
     "@astrojs/sitemap": "^3.0.4",
     "@astrojs/tailwind": "^5.1.0",
-    "@astrojs/vercel": "^7.3.8",
     "@sendgrid/mail": "^8.1.1",
     "@stripe/stripe-js": "^2.4.0",
     "astro": "^4.4.0",
