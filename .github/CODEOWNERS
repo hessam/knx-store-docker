@@ -1,0 +1,176 @@
+# Code Owners for KNX Store Project
+# This file defines who is responsible for different parts of the codebase
+# GitHub will automatically request reviews from these owners when PRs are created
+
+# Global project owners (all files)
+* @alice-senior @charlie-senior
+
+# API and Backend Integration
+src/lib/api/ @alice-senior
+src/lib/api/wordpress.ts @alice-senior
+src/lib/api/woocommerce.ts @alice-senior
+src/pages/api/ @alice-senior
+
+# Frontend Components and UI
+src/components/ @charlie-senior @bob-junior
+src/components/*.astro @charlie-senior
+src/components/*.tsx @charlie-senior
+src/layouts/ @charlie-senior
+
+# Styling and CSS
+src/styles/ @dana-junior @charlie-senior
+tailwind.config.* @dana-junior
+*.css @dana-junior
+
+# Testing and Quality Assurance
+tests/ @charlie-senior @bob-junior
+tests/accessibility.spec.ts @charlie-senior
+tests/e2e/ @charlie-senior
+*.test.* @charlie-senior
+*.spec.* @charlie-senior
+
+# Configuration and Build
+astro.config.* @alice-senior
+package.json @alice-senior @charlie-senior
+vercel.json @alice-senior
+docker-compose.yml @alice-senior
+Dockerfile @alice-senior
+
+# Documentation
+docs/ @charlie-senior @dana-junior
+README.md @alice-senior @charlie-senior
+*.md @charlie-senior
+
+# GitHub Actions and CI/CD
+.github/workflows/ @alice-senior
+.github/CODEOWNERS @alice-senior
+
+# Storybook Configuration
+.storybook/ @charlie-senior
+src/components/*.stories.* @charlie-senior
+
+# Performance and Monitoring
+.lighthouserc.* @alice-senior
+size-limit @alice-senior
+
+# Security and Environment
+.env* @alice-senior
+*.env @alice-senior
+
+# TypeScript Configuration
+tsconfig.json @charlie-senior
+*.d.ts @charlie-senior
+
+# Utilities and Helpers
+src/utils/ @charlie-senior @bob-junior
+src/lib/utils/ @charlie-senior
+
+# Pages and Routing
+src/pages/ @charlie-senior @bob-junior
+src/pages/en/ @charlie-senior
+src/pages/products/ @charlie-senior
+
+# Data and Types
+src/types/ @alice-senior @charlie-senior
+src/stores/ @alice-senior
+src/hooks/ @charlie-senior
+
+# Performance and SEO
+src/pages/sitemap.xml.ts @alice-senior
+src/pages/robots.txt.ts @alice-senior
+
+# Error Handling and Logging
+src/lib/errors/ @alice-senior
+src/lib/logger/ @alice-senior
+
+# Internationalization
+src/i18n/ @charlie-senior @dana-junior
+src/pages/ar/ @dana-junior
+
+# Payment and E-commerce
+src/lib/stripe/ @alice-senior
+src/lib/payments/ @alice-senior
+
+# Caching and Performance
+src/lib/cache/ @alice-senior
+src/lib/redis/ @alice-senior
+
+# Email and Notifications
+src/lib/email/ @alice-senior
+src/lib/notifications/ @alice-senior
+
+# Analytics and Tracking
+src/lib/analytics/ @alice-senior
+src/lib/gtm/ @alice-senior
+
+# Database and Data Models
+src/lib/database/ @alice-senior
+src/models/ @alice-senior
+
+# Validation and Schemas
+src/lib/validation/ @charlie-senior
+src/schemas/ @charlie-senior
+
+# Middleware and Interceptors
+src/middleware/ @alice-senior
+src/lib/interceptors/ @alice-senior
+
+# Constants and Configuration
+src/constants/ @charlie-senior
+src/config/ @alice-senior
+
+# Legacy and Migration
+src/legacy/ @alice-senior
+src/migrations/ @alice-senior
+
+# Experimental Features
+src/experimental/ @alice-senior @charlie-senior
+
+# Vendor and Third-party
+src/vendor/ @alice-senior
+src/third-party/ @alice-senior
+
+# Backup and Archive
+src/backup/ @alice-senior
+src/archive/ @alice-senior
+
+# Team Member Expertise Areas:
+
+# Alice (Senior) - Backend, API, DevOps, Security
+# - WordPress/WooCommerce integration
+# - Payment systems (Stripe)
+# - Database and caching
+# - Security and environment variables
+# - Deployment and CI/CD
+# - Performance optimization
+
+# Charlie (Senior) - Frontend, Testing, Architecture
+# - React/Astro components
+# - Testing strategy and implementation
+# - Code quality and best practices
+# - Documentation and technical writing
+# - Accessibility and UX
+# - TypeScript and type safety
+
+# Bob (Junior) - Frontend, Testing, Learning
+# - Component development
+# - API consumption
+# - Testing implementation
+# - Documentation
+# - Learning backend development
+
+# Dana (Junior) - UI/UX, Styling, Learning
+# - Component styling and CSS
+# - User experience implementation
+# - Documentation and writing
+# - Learning full-stack development
+# - Internationalization (Arabic/RTL)
+
+# Review Guidelines:
+# - Senior developers should review all changes
+# - Junior developers should review changes in their expertise areas
+# - At least 2 approvals required for merging
+# - Security-related changes require Alice's approval
+# - Performance changes require Alice's approval
+# - UI/UX changes require Dana's input
+# - Testing changes require Charlie's approval 

@@ -1,0 +1,307 @@
+name: PR Review Notifications
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, review_requested]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  notify-reviewers:
+    name: Notify PR Reviewers
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@v42
+        with:
+          files: |
+            **/*.ts
+            **/*.tsx
+            **/*.astro
+            **/*.js
+            **/*.jsx
+            **/*.css
+            **/*.md
+            **/*.json
+            **/*.yml
+            **/*.yaml
+
+      - name: Determine Reviewers
+        id: reviewers
+        run: |
+          # Initialize reviewer arrays
+          SENIOR_REVIEWERS=""
+          JUNIOR_REVIEWERS=""
+          
+          # Check for API/Backend changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "src/lib/api/"; then
+            SENIOR_REVIEWERS="$SENIOR_REVIEWERS alice-senior"
+            echo "API changes detected - adding Alice (Senior)"
+          fi
+          
+          # Check for Component changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "src/components/"; then
+            SENIOR_REVIEWERS="$SENIOR_REVIEWERS charlie-senior"
+            JUNIOR_REVIEWERS="$JUNIOR_REVIEWERS bob-junior"
+            echo "Component changes detected - adding Charlie (Senior) and Bob (Junior)"
+          fi
+          
+          # Check for Styling changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "src/styles/"; then
+            JUNIOR_REVIEWERS="$JUNIOR_REVIEWERS dana-junior"
+            echo "Styling changes detected - adding Dana (Junior)"
+          fi
+          
+          # Check for Test changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "tests/"; then
+            SENIOR_REVIEWERS="$SENIOR_REVIEWERS charlie-senior"
+            JUNIOR_REVIEWERS="$JUNIOR_REVIEWERS bob-junior"
+            echo "Test changes detected - adding Charlie (Senior) and Bob (Junior)"
+          fi
+          
+          # Check for Configuration changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "astro.config\|package.json\|vercel.json\|docker-compose.yml"; then
+            SENIOR_REVIEWERS="$SENIOR_REVIEWERS alice-senior"
+            echo "Configuration changes detected - adding Alice (Senior)"
+          fi
+          
+          # Check for Documentation changes
+          if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "docs/\|README.md"; then
+            SENIOR_REVIEWERS="$SENIOR_REVIEWERS charlie-senior"
+            JUNIOR_REVIEWERS="$JUNIOR_REVIEWERS dana-junior"
+            echo "Documentation changes detected - adding Charlie (Senior) and Dana (Junior)"
+          fi
+          
+          # Ensure at least one senior reviewer
+          if [ -z "$SENIOR_REVIEWERS" ]; then
+            SENIOR_REVIEWERS="alice-senior charlie-senior"
+            echo "No specific reviewers detected - adding default senior reviewers"
+          fi
+          
+          # Remove duplicates and format
+          SENIOR_REVIEWERS=$(echo $SENIOR_REVIEWERS | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
+          JUNIOR_REVIEWERS=$(echo $JUNIOR_REVIEWERS | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
+          
+          echo "senior_reviewers=$SENIOR_REVIEWERS" >> $GITHUB_OUTPUT
+          echo "junior_reviewers=$JUNIOR_REVIEWERS" >> $GITHUB_OUTPUT
+          
+          echo "Final Reviewers:"
+          echo "Senior: $SENIOR_REVIEWERS"
+          echo "Junior: $JUNIOR_REVIEWERS"
+
+      - name: Assign Reviewers
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const reviewers = [];
+            
+            // Add senior reviewers
+            const seniorReviewers = '${{ steps.reviewers.outputs.senior_reviewers }}'.split(' ').filter(r => r);
+            reviewers.push(...seniorReviewers);
+            
+            // Add junior reviewers (max 2 total reviewers)
+            const juniorReviewers = '${{ steps.reviewers.outputs.junior_reviewers }}'.split(' ').filter(r => r);
+            const remainingSlots = Math.max(0, 2 - reviewers.length);
+            reviewers.push(...juniorReviewers.slice(0, remainingSlots));
+            
+            if (reviewers.length > 0) {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: reviewers
+              });
+              
+              console.log(`Assigned reviewers: ${reviewers.join(', ')}`);
+            }
+
+      - name: Notify Slack - PR Ready for Review
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: 'code-reviews'
+          text: |
+            🔍 **New PR Ready for Review**
+            
+            *Repository:* ${{ github.repository }}
+            *PR:* #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+            *Author:* ${{ github.event.pull_request.user.login }}
+            *Branch:* ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
+            
+            📋 **Reviewers Assigned:**
+            • Senior: ${{ steps.reviewers.outputs.senior_reviewers }}
+            • Junior: ${{ steps.reviewers.outputs.junior_reviewers }}
+            
+            🎯 **Review Targets:**
+            • Review time: <2 hours
+            • Merge time: <24 hours
+            • Required approvals: 2
+            
+            🔗 **Links:**
+            • PR: ${{ github.event.pull_request.html_url }}
+            • Files changed: ${{ github.event.pull_request.changed_files }} files
+            • Additions: +${{ github.event.pull_request.additions }}
+            • Deletions: -${{ github.event.pull_request.deletions }}
+            
+            ⏰ **Reminder:** Please review within 2 hours to maintain our target review time!
+
+      - name: Add PR Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [];
+            
+            // Add size label based on changes
+            const changedFiles = ${{ github.event.pull_request.changed_files }};
+            const additions = ${{ github.event.pull_request.additions }};
+            const deletions = ${{ github.event.pull_request.deletions }};
+            
+            if (changedFiles <= 5 && additions <= 50) {
+              labels.push('size: XS');
+            } else if (changedFiles <= 10 && additions <= 100) {
+              labels.push('size: S');
+            } else if (changedFiles <= 20 && additions <= 200) {
+              labels.push('size: M');
+            } else if (changedFiles <= 50 && additions <= 500) {
+              labels.push('size: L');
+            } else {
+              labels.push('size: XL');
+            }
+            
+            // Add type labels based on file changes
+            const changedFilesList = '${{ steps.changed-files.outputs.all_changed_files }}';
+            
+            if (changedFilesList.includes('src/lib/api/')) {
+              labels.push('type: api');
+            }
+            if (changedFilesList.includes('src/components/')) {
+              labels.push('type: frontend');
+            }
+            if (changedFilesList.includes('tests/')) {
+              labels.push('type: testing');
+            }
+            if (changedFilesList.includes('docs/')) {
+              labels.push('type: documentation');
+            }
+            if (changedFilesList.includes('src/styles/')) {
+              labels.push('type: styling');
+            }
+            
+            // Add priority label for urgent changes
+            const title = '${{ github.event.pull_request.title }}'.toLowerCase();
+            if (title.includes('urgent') || title.includes('hotfix') || title.includes('critical')) {
+              labels.push('priority: high');
+            } else {
+              labels.push('priority: normal');
+            }
+            
+            // Add review status label
+            labels.push('status: needs-review');
+            
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labels
+              });
+              
+              console.log(`Added labels: ${labels.join(', ')}`);
+            }
+
+      - name: Create Review Checklist Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checklist = `
+            ## 🔍 PR Review Checklist
+            
+            ### Code Quality
+            - [ ] Code follows project conventions and style guidelines
+            - [ ] No obvious bugs or logical errors
+            - [ ] Error handling is appropriate
+            - [ ] Code is readable and well-documented
+            
+            ### Testing
+            - [ ] Tests are included for new functionality
+            - [ ] Existing tests still pass
+            - [ ] Test coverage is adequate
+            - [ ] Accessibility tests pass (if UI changes)
+            
+            ### Performance
+            - [ ] No performance regressions
+            - [ ] Bundle size is reasonable
+            - [ ] Lighthouse scores remain high
+            - [ ] No unnecessary re-renders or API calls
+            
+            ### Security
+            - [ ] No security vulnerabilities introduced
+            - [ ] Environment variables are properly handled
+            - [ ] API keys and secrets are not exposed
+            - [ ] Input validation is in place
+            
+            ### Documentation
+            - [ ] Code comments are clear and helpful
+            - [ ] README or docs updated if needed
+            - [ ] API changes are documented
+            - [ ] Breaking changes are noted
+            
+            ### Deployment
+            - [ ] Changes work in development environment
+            - [ ] No breaking changes to existing functionality
+            - [ ] Database migrations are safe (if applicable)
+            - [ ] Environment-specific configs are correct
+            
+            ---
+            
+            **Review Target:** <2 hours
+            **Merge Target:** <24 hours
+            **Required Approvals:** 2 (including 1 senior developer)
+            
+            Please check the boxes above as you review each section. 🚀
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: checklist
+            });
+
+  track-review-time:
+    name: Track Review Time
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    
+    steps:
+      - name: Record PR Creation Time
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ github.event.pull_request.number }};
+            const createdAt = '${{ github.event.pull_request.created_at }}';
+            
+            // Store creation time for tracking
+            const trackingData = {
+              prNumber: prNumber,
+              createdAt: createdAt,
+              targetReviewTime: '2h',
+              targetMergeTime: '24h'
+            };
+            
+            console.log('PR Review Time Tracking:', JSON.stringify(trackingData, null, 2));
+            
+            // You could store this in a database or file for tracking
+            // For now, we'll log it and can implement persistent storage later 

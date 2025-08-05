@@ -1,127 +1,123 @@
 ---
+import { formatWordPressContent, formatPrice, extractFirstImage } from '../utils/format';
 import Card from './Card.astro';
 import Button from './Button.astro';
-import { formatPrice, formatWordPressContent, extractFirstImage } from '../utils/format';
-import type { WooCommerceProduct } from '../lib/api/woocommerce';
 
-export interface Props {
-  product: WooCommerceProduct;
-  showDescription?: boolean;
-  showPrice?: boolean;
-  showAddToCart?: boolean;
-  class?: string;
+interface Props {
+  product: {
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    regular_price: string;
+    sale_price?: string;
+    images: Array<{ src: string; alt: string }>;
+    permalink: string;
+    slug: string;
+  };
+  loading?: boolean;
 }
 
-const {
-  product,
-  showDescription = true,
-  showPrice = true,
-  showAddToCart = true,
-  class: className = '',
-} = Astro.props;
+const { product, loading = false } = Astro.props;
+const { id, name, description, price, regular_price, sale_price, images, permalink, slug } = product;
 
-// Extract product data
-const {
-  id,
-  name,
-  slug,
-  short_description,
-  description,
-  price,
-  regular_price,
-  sale_price,
-  on_sale,
-  images,
-
-} = product;
-
-// Format content
-const formattedDescription = showDescription 
-  ? formatWordPressContent(short_description || description, 120)
-  : '';
-
-// Get product image
-const productImage = images && images.length > 0 
-  ? images[0].src 
-  : extractFirstImage(description) || '/placeholder-product.jpg';
-
-// Price display
-const displayPrice = on_sale && sale_price ? sale_price : price;
-const originalPrice = on_sale ? regular_price : null;
+const isOnSale = sale_price && sale_price !== regular_price;
+const mainImage = extractFirstImage(images);
+const formattedDescription = formatWordPressContent(description);
 ---
 
 <Card 
-  variant="elevated" 
+  variant="default" 
+  padding="p-4" 
   hover={true} 
-  clickable={true}
-  href={`/products/${slug}`}
-  class={`product-card ${className}`}
+  clickable={true} 
+  href={permalink}
   data-track-event="product_click"
   data-track-category="ecommerce"
   data-track-label={name}
 >
-  <div class="flex flex-col h-full">
-    <!-- Product Image -->
-    <div class="relative aspect-square overflow-hidden rounded-t-lg">
-      <img
-        src={productImage}
-        alt={name}
-        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        loading="lazy"
-      />
-      {on_sale && (
-        <div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-          SALE
-        </div>
-      )}
+  {loading ? (
+    <!-- Loading State -->
+    <div class="animate-pulse">
+      <div class="bg-gray-300 h-48 rounded-lg mb-4"></div>
+      <div class="space-y-3">
+        <div class="bg-gray-300 h-4 rounded w-3/4"></div>
+        <div class="bg-gray-300 h-3 rounded w-1/2"></div>
+        <div class="bg-gray-300 h-6 rounded w-1/3"></div>
+        <div class="bg-gray-300 h-8 rounded w-1/4"></div>
+      </div>
     </div>
+  ) : (
+    <!-- Product Content -->
+    <div class="space-y-4">
+      <!-- Product Image -->
+      <div class="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+        {mainImage ? (
+          <img 
+            src={mainImage.src} 
+            alt={mainImage.alt || name}
+            class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div class="w-full h-full flex items-center justify-center bg-gray-200">
+            <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        )}
+        
+        <!-- Sale Badge -->
+        {isOnSale && (
+          <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            SALE
+          </div>
+        )}
+      </div>
 
-    <!-- Product Info -->
-    <div class="flex-1 p-4 flex flex-col">
-      <!-- Product Name -->
-      <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-        {name}
-      </h3>
-
-      <!-- Product Description -->
-      {showDescription && formattedDescription && (
-        <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+      <!-- Product Info -->
+      <div class="space-y-2">
+        <h3 class="text-lg font-semibold text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
+          {name}
+        </h3>
+        
+        <div class="text-sm text-gray-600 line-clamp-3">
           {formattedDescription}
-        </p>
-      )}
-
-      <!-- Price -->
-      {showPrice && (
-        <div class="flex items-center gap-2 mb-4">
-          <span class="text-xl font-bold text-gray-900">
-            {formatPrice(displayPrice)}
-          </span>
-          {originalPrice && (
-            <span class="text-sm text-gray-500 line-through">
-              {formatPrice(originalPrice)}
+        </div>
+        
+        <!-- Price -->
+        <div class="flex items-center space-x-2">
+          {isOnSale ? (
+            <>
+              <span class="text-lg font-bold text-red-600">
+                {formatPrice(sale_price)}
+              </span>
+              <span class="text-sm text-gray-500 line-through">
+                {formatPrice(regular_price)}
+              </span>
+            </>
+          ) : (
+            <span class="text-lg font-bold text-gray-900">
+              {formatPrice(price)}
             </span>
           )}
         </div>
-      )}
+      </div>
 
       <!-- Add to Cart Button -->
-      {showAddToCart && (
-        <div class="mt-auto">
-          <Button
-            variant="primary"
-            size="sm"
-            fullWidth={true}
-            data-track-event="add_to_cart"
-            data-track-category="ecommerce"
-            data-track-label={name}
-            data-product-id={id}
-          >
-            Add to Cart
-          </Button>
-        </div>
-      )}
+      <Button 
+        variant="primary" 
+        size="md" 
+        fullWidth={true}
+        data-track-event="add_to_cart"
+        data-track-category="ecommerce"
+        data-track-label={name}
+        data-track-value={price}
+      >
+        Add to Cart
+      </Button>
     </div>
-  </div>
+  )}
 </Card>
 
 <style>
