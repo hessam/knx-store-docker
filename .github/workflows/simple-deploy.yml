@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Setup Playwright
+        run: npx playwright install --with-deps
+
       - name: Run tests
         run: npm run test:ci
         continue-on-error: true
@@ -39,6 +42,18 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+
+      - name: Run Accessibility Tests
+        run: npm run test:accessibility:ci
+        continue-on-error: true
+
+      - name: Check Bundle Size
+        run: npm run bundle-size:ci
+        continue-on-error: true
+
+      - name: Run Lighthouse CI
+        run: npm run lhci
+        continue-on-error: true
 
       # Remove all Vercel deployment steps since auto-deployment works
       - name: Build Success

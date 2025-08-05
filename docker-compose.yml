@@ -14,6 +14,7 @@ services:
       - "4002:4002"  # Alternative port
       - "4003:4003"  # API server
       - "4004:4004"  # Static file server
+      - "6006:6006"  # Storybook
     working_dir: /app
     environment:
       - NODE_ENV=development
