@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
+import Redis from 'ioredis';
 
 // Types for WordPress API responses
 export interface WordPressPost {
@@ -125,15 +126,33 @@ export interface WordPressConfig {
   baseURL: string;
   timeout?: number;
   headers?: Record<string, string>;
+  redis?: {
+    host: string;
+    port: number;
+    password?: string;
+  };
 }
 
 // WordPress API Client Class
 export class WordPressAPI {
   private client: AxiosInstance;
   private config: WordPressConfig;
+  private redis: Redis | null = null;
 
   constructor(config: WordPressConfig) {
     this.config = config;
+    
+    // Initialize Redis if configured
+    if (config.redis) {
+      this.redis = new Redis({
+        host: config.redis.host,
+        port: config.redis.port,
+        password: config.redis.password,
+        retryDelayOnFailover: 100,
+        maxRetriesPerRequest: 3,
+      } as any);
+    }
+    
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 10000,
@@ -305,6 +324,67 @@ export class WordPressAPI {
     }
   }
 
+  // Caching methods
+  private async getCached<T>(key: string): Promise<T | null> {
+    if (!this.redis) return null;
+    
+    try {
+      const cached = await this.redis.get(key);
+      return cached ? JSON.parse(cached) : null;
+    } catch (error) {
+      console.error(`[WordPress API] Cache get error for key ${key}:`, error);
+      return null;
+    }
+  }
+
+  private async setCached(key: string, data: any, ttl: number = 300): Promise<void> {
+    if (!this.redis) return;
+    
+    try {
+      await this.redis.set(key, JSON.stringify(data), 'EX', ttl);
+    } catch (error) {
+      console.error(`[WordPress API] Cache set error for key ${key}:`, error);
+    }
+  }
+
+  // Enhanced fetchProducts with caching
+  async fetchProducts(params?: {
+    page?: number;
+    per_page?: number;
+    search?: string;
+    categories?: number[];
+    tags?: number[];
+    author?: number;
+    orderby?: string;
+    order?: 'asc' | 'desc';
+  }): Promise<WordPressPost[]> {
+    const cacheKey = `products:${JSON.stringify(params || {})}`;
+    
+    // Try to get from cache first
+    const cached = await this.getCached<WordPressPost[]>(cacheKey);
+    if (cached) {
+      console.log(`[WordPress API] Cache hit for products`);
+      return cached;
+    }
+
+    try {
+      const response: AxiosResponse<WordPressPost[]> = await this.client.get('/wp/v2/posts', {
+        params: {
+          _embed: true,
+          ...params,
+        },
+      });
+      
+      // Cache the result for 5 minutes
+      await this.setCached(cacheKey, response.data, 300);
+      
+      return response.data;
+    } catch (error) {
+      console.error('[WordPress API] Error fetching products:', error);
+      throw new Error('Failed to fetch products from WordPress');
+    }
+  }
+
   // Health check
   async healthCheck(): Promise<boolean> {
     try {
@@ -331,6 +411,11 @@ export const getWordPressAPI = (): WordPressAPI => {
     wordPressAPIInstance = createWordPressAPI({
       baseURL,
       timeout: 10000,
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379'),
+        password: process.env.REDIS_PASSWORD,
+      },
     });
   }
   return wordPressAPIInstance;
