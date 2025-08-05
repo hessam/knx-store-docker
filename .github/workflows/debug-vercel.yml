@@ -1,0 +1,134 @@
+name: Debug Vercel Setup
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Secret Availability
+        run: |
+          echo "=== Checking Secrets ==="
+          
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "❌ VERCEL_TOKEN is missing"
+            exit 1
+          else
+            echo "✅ VERCEL_TOKEN exists (length: ${#VERCEL_TOKEN})"
+            echo "Token prefix: $(echo "$VERCEL_TOKEN" | head -c 10)..."
+          fi
+          
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "❌ VERCEL_ORG_ID is missing"
+            exit 1
+          else
+            echo "✅ VERCEL_ORG_ID exists: $VERCEL_ORG_ID"
+          fi
+          
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "❌ VERCEL_PROJECT_ID is missing"
+            exit 1
+          else
+            echo "✅ VERCEL_PROJECT_ID exists: $VERCEL_PROJECT_ID"
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Test Vercel Authentication
+        run: |
+          echo "=== Testing Vercel CLI ==="
+          npx vercel --version
+          
+          echo "Testing authentication..."
+          npx vercel whoami --token "$VERCEL_TOKEN" || {
+            echo "❌ Authentication failed!"
+            echo "Possible issues:"
+            echo "1. Token is expired"
+            echo "2. Token format is wrong"
+            echo "3. Token doesn't have required permissions"
+            exit 1
+          }
+          
+          echo "✅ Authentication successful!"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Test Project Access
+        run: |
+          echo "=== Testing Project Access ==="
+          npx vercel projects ls --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || {
+            echo "❌ Cannot access projects"
+            echo "Check if ORG_ID is correct and token has access to the organization"
+            exit 1
+          }
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Test Specific Project
+        run: |
+          echo "=== Testing Specific Project ==="
+          npx vercel projects inspect "$VERCEL_PROJECT_ID" --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || {
+            echo "❌ Cannot access specific project"
+            echo "Check if PROJECT_ID is correct"
+            exit 1
+          }
+          echo "✅ Project access successful!"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Test Build Process
+        run: |
+          echo "=== Testing Build Process ==="
+          
+          echo "Installing dependencies..."
+          npm install
+          
+          echo "Running build..."
+          npm run build
+          
+          echo "Checking build output..."
+          ls -la dist/
+          
+          echo "✅ Build successful!"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Test Manual Deployment
+        run: |
+          echo "=== Testing Manual Deployment ==="
+          
+          echo "Attempting manual deployment..."
+          npx vercel --prod --token "$VERCEL_TOKEN" --scope "$VERCEL_ORG_ID" || {
+            echo "❌ Manual deployment failed!"
+            echo "This will help identify the exact issue"
+            exit 1
+          }
+          
+          echo "✅ Manual deployment successful!"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Summary
+        run: |
+          echo "=== Debug Summary ==="
+          echo "✅ All checks passed!"
+          echo "✅ Secrets are available"
+          echo "✅ Authentication works"
+          echo "✅ Project access works"
+          echo "✅ Build process works"
+          echo "✅ Manual deployment works"
+          echo ""
+          echo "If the main workflow still fails, the issue is likely in the workflow configuration itself." 
