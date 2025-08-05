@@ -1,0 +1,164 @@
+---
+// Debug page to test basic Astro functionality
+const timestamp = new Date().toISOString();
+const environment = import.meta.env.MODE || 'unknown';
+const nodeEnv = import.meta.env.NODE_ENV || 'unknown';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - KNX Store</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .debug-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .success { border-left-color: #28a745; }
+        .warning { border-left-color: #ffc107; }
+        .error { border-left-color: #dc3545; }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            overflow-x: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🔍 KNX Store Debug Page</h1>
+    
+    <div class="debug-section success">
+        <h2>✅ Basic Astro Setup</h2>
+        <p><span class="status success">WORKING</span> Astro is rendering this page successfully</p>
+        <div class="code">
+            <strong>Environment:</strong> {environment}<br>
+            <strong>NODE_ENV:</strong> {nodeEnv}<br>
+            <strong>Timestamp:</strong> {timestamp}
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔧 Build Information</h2>
+        <div class="code">
+            <strong>Build Time:</strong> {timestamp}<br>
+            <strong>Astro Version:</strong> {import.meta.env.ASTRO_VERSION || 'unknown'}<br>
+            <strong>Site URL:</strong> {import.meta.env.SITE || 'not set'}<br>
+            <strong>Base Path:</strong> {import.meta.env.BASE_PATH || 'not set'}
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🌐 Environment Variables Test</h2>
+        <div class="code">
+            <strong>VERCEL_ENV:</strong> {import.meta.env.VERCEL_ENV || 'not set'}<br>
+            <strong>VERCEL_URL:</strong> {import.meta.env.VERCEL_URL || 'not set'}<br>
+            <strong>VERCEL_GIT_COMMIT_SHA:</strong> {import.meta.env.VERCEL_GIT_COMMIT_SHA || 'not set'}<br>
+            <strong>VERCEL_GIT_COMMIT_REF:</strong> {import.meta.env.VERCEL_GIT_COMMIT_REF || 'not set'}
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📦 Package Information</h2>
+        <div class="code">
+            <strong>Package Name:</strong> knx-store-dev<br>
+            <strong>Version:</strong> 1.0.0<br>
+            <strong>Type:</strong> module<br>
+            <strong>Node Version:</strong> 18+
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔗 Navigation Test</h2>
+        <p>Test these links to verify routing works:</p>
+        <ul>
+            <li><a href="/">Home Page</a></li>
+            <li><a href="/api/health">Health API</a></li>
+            <li><a href="/debug">This Debug Page</a></li>
+        </ul>
+    </div>
+
+    <div class="debug-section">
+        <h2>🧪 JavaScript Test</h2>
+        <div id="js-test">JavaScript is loading...</div>
+        <script>
+            const jsTestElement = document.getElementById('js-test');
+            if (jsTestElement) {
+                jsTestElement.innerHTML = `
+                    <span class="status success">✅ JavaScript Working</span><br>
+                    <strong>User Agent:</strong> ${navigator.userAgent}<br>
+                    <strong>Viewport:</strong> ${window.innerWidth}x${window.innerHeight}<br>
+                    <strong>Timestamp:</strong> ${new Date().toISOString()}
+                `;
+            }
+        </script>
+    </div>
+
+    <div class="debug-section">
+        <h2>📊 Performance Test</h2>
+        <div id="performance-test">Testing performance...</div>
+        <script>
+            window.addEventListener('load', () => {
+                const performanceElement = document.getElementById('performance-test');
+                if (performanceElement) {
+                    const loadTime = performance.now();
+                    performanceElement.innerHTML = `
+                        <span class="status success">✅ Page Loaded</span><br>
+                        <strong>Load Time:</strong> ${loadTime.toFixed(2)}ms<br>
+                        <strong>Navigation Type:</strong> ${performance.navigation.type}
+                    `;
+                }
+            });
+        </script>
+    </div>
+
+    <div class="debug-section warning">
+        <h2>⚠️ Known Issues</h2>
+        <ul>
+            <li>Docker container not running (need to start with <code>docker-compose up</code>)</li>
+            <li>Vercel secrets not configured (need VERCEL_ORG_ID and VERCEL_PROJECT_ID)</li>
+            <li>Environment variables may not be available in static builds</li>
+        </ul>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔍 Debug Actions</h2>
+        <p>Use these to test different aspects:</p>
+        <ul>
+            <li><strong>Check Console:</strong> Open browser dev tools to see any errors</li>
+            <li><strong>Network Tab:</strong> Check if all resources load correctly</li>
+            <li><strong>Lighthouse:</strong> Run performance audit</li>
+            <li><strong>Mobile Test:</strong> Test responsive design</li>
+        </ul>
+    </div>
+
+    <footer style="margin-top: 40px; text-align: center; color: #666;">
+        <p>Debug page generated at {timestamp}</p>
+        <p>Environment: {environment} | NODE_ENV: {nodeEnv}</p>
+    </footer>
+</body>
+</html> 

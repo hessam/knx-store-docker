@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel/serverless';
-import node from '@astrojs/node';
 
 const isPreview = process.env.NODE_ENV === 'preview';
 const isProduction = process.env.NODE_ENV === 'production';
