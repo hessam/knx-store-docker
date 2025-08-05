@@ -348,6 +348,10 @@ export class WordPressAPI {
   }
 
   // Enhanced fetchProducts with caching
+  /**
+   * Fetch products from WordPress API with enhanced caching and error handling
+   * This method retrieves posts and applies product-specific filtering
+   */
   async fetchProducts(params?: {
     page?: number;
     per_page?: number;
