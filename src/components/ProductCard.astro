@@ -1,0 +1,134 @@
+---
+import Card from './Card.astro';
+import Button from './Button.astro';
+import { formatPrice, formatWordPressContent, extractFirstImage } from '../utils/format';
+import type { WooCommerceProduct } from '../lib/api/woocommerce';
+
+export interface Props {
+  product: WooCommerceProduct;
+  showDescription?: boolean;
+  showPrice?: boolean;
+  showAddToCart?: boolean;
+  class?: string;
+}
+
+const {
+  product,
+  showDescription = true,
+  showPrice = true,
+  showAddToCart = true,
+  class: className = '',
+} = Astro.props;
+
+// Extract product data
+const {
+  id,
+  name,
+  slug,
+  short_description,
+  description,
+  price,
+  regular_price,
+  sale_price,
+  on_sale,
+  images,
+
+} = product;
+
+// Format content
+const formattedDescription = showDescription 
+  ? formatWordPressContent(short_description || description, 120)
+  : '';
+
+// Get product image
+const productImage = images && images.length > 0 
+  ? images[0].src 
+  : extractFirstImage(description) || '/placeholder-product.jpg';
+
+// Price display
+const displayPrice = on_sale && sale_price ? sale_price : price;
+const originalPrice = on_sale ? regular_price : null;
+---
+
+<Card 
+  variant="elevated" 
+  hover={true} 
+  clickable={true}
+  href={`/products/${slug}`}
+  class={`product-card ${className}`}
+  data-track-event="product_click"
+  data-track-category="ecommerce"
+  data-track-label={name}
+>
+  <div class="flex flex-col h-full">
+    <!-- Product Image -->
+    <div class="relative aspect-square overflow-hidden rounded-t-lg">
+      <img
+        src={productImage}
+        alt={name}
+        class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        loading="lazy"
+      />
+      {on_sale && (
+        <div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+          SALE
+        </div>
+      )}
+    </div>
+
+    <!-- Product Info -->
+    <div class="flex-1 p-4 flex flex-col">
+      <!-- Product Name -->
+      <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+        {name}
+      </h3>
+
+      <!-- Product Description -->
+      {showDescription && formattedDescription && (
+        <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+          {formattedDescription}
+        </p>
+      )}
+
+      <!-- Price -->
+      {showPrice && (
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xl font-bold text-gray-900">
+            {formatPrice(displayPrice)}
+          </span>
+          {originalPrice && (
+            <span class="text-sm text-gray-500 line-through">
+              {formatPrice(originalPrice)}
+            </span>
+          )}
+        </div>
+      )}
+
+      <!-- Add to Cart Button -->
+      {showAddToCart && (
+        <div class="mt-auto">
+          <Button
+            variant="primary"
+            size="sm"
+            fullWidth={true}
+            data-track-event="add_to_cart"
+            data-track-category="ecommerce"
+            data-track-label={name}
+            data-product-id={id}
+          >
+            Add to Cart
+          </Button>
+        </div>
+      )}
+    </div>
+  </div>
+</Card>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style> 

@@ -1,0 +1,89 @@
+---
+export interface Props {
+  variant?: 'default' | 'elevated' | 'outlined' | 'flat';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  hover?: boolean;
+  clickable?: boolean;
+  href?: string;
+  target?: string;
+  rel?: string;
+  class?: string;
+  'data-track-event'?: string;
+  'data-track-category'?: string;
+  'data-track-label'?: string;
+}
+
+const {
+  variant = 'default',
+  padding = 'md',
+  hover = false,
+  clickable = false,
+  href,
+  target,
+  rel,
+  class: className = '',
+  'data-track-event': trackEvent,
+  'data-track-category': trackCategory,
+  'data-track-label': trackLabel,
+  ...rest
+} = Astro.props;
+
+// Base classes
+const baseClasses = 'bg-white rounded-lg border';
+
+// Variant classes
+const variantClasses = {
+  default: 'border-gray-200',
+  elevated: 'border-gray-200 shadow-md',
+  outlined: 'border-gray-300',
+  flat: 'border-transparent',
+};
+
+// Padding classes
+const paddingClasses = {
+  none: '',
+  sm: 'p-3',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+// Hover and clickable classes
+const interactiveClasses = (hover || clickable || href) ? 'transition-all duration-200 hover:shadow-lg hover:-translate-y-1' : '';
+
+// Combine all classes
+const cardClasses = [
+  baseClasses,
+  variantClasses[variant],
+  paddingClasses[padding],
+  interactiveClasses,
+  className,
+].filter(Boolean).join(' ');
+
+// Tracking attributes
+const trackingAttrs = {
+  ...(trackEvent && { 'data-track-event': trackEvent }),
+  ...(trackCategory && { 'data-track-category': trackCategory }),
+  ...(trackLabel && { 'data-track-label': trackLabel }),
+};
+---
+
+{href ? (
+  <a
+    href={href}
+    target={target}
+    rel={rel}
+    class={cardClasses}
+    {...trackingAttrs}
+    {...rest}
+  >
+    <slot />
+  </a>
+) : (
+  <div
+    class={cardClasses}
+    {...trackingAttrs}
+    {...rest}
+  >
+    <slot />
+  </div>
+)} 
