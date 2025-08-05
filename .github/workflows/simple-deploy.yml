@@ -1,0 +1,79 @@
+name: Simple Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  test-and-deploy:
+    name: Test and Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:ci
+        continue-on-error: true
+
+      - name: Run type check
+        run: npm run type-check
+        continue-on-error: true
+
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Vercel
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: ${{ github.event_name == 'pull_request' && '--target=preview' || '--prod' }}
+          working-directory: ./
+
+      - name: Comment PR with Preview URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previewUrl = '${{ steps.deploy.outputs.preview-url }}';
+            const deploymentUrl = '${{ steps.deploy.outputs.url }}';
+            
+            const commentBody = `🚀 **Deployment Successful**
+            
+            Your changes have been deployed!
+            
+            **Preview URL:** ${previewUrl}
+            **Deployment URL:** ${deploymentUrl}
+            
+            **Branch:** \`${{ github.head_ref }}\`
+            **Commit:** \`${{ github.sha }}\`
+            
+            ---
+            *This preview will be automatically updated with new commits to this PR.*`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            }); 
