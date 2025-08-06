@@ -1,16 +1,18 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
-import { getWordPressAPI } from '../../lib/api/wordpress';
+import { getWooCommerceSync } from '../../lib/api/woocommerce-sync';
 
-// Fetch products from WordPress API
+// Fetch products from WooCommerce API
 let products: any[] = [];
 let error: string | null = null;
 let loading = true;
+let syncStatus: any = null;
 
 try {
-  const wordPressAPI = getWordPressAPI();
-  products = await wordPressAPI.fetchProducts();
+  const wooCommerceSync = getWooCommerceSync();
+  products = await wooCommerceSync.fetchProducts({ per_page: 8 });
+  syncStatus = await wooCommerceSync.getSyncStatus();
   loading = false;
 } catch (err) {
   error = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -61,9 +63,33 @@ const mockProduct = {
     <!-- Real Products from API -->
     <section class="mb-12">
       <h2 class="text-2xl font-semibold text-gray-800 mb-6">
-        Real Products from WordPress API
+        Real Products from WooCommerce API
         {loading && <span class="text-blue-600"> (Loading...)</span>}
       </h2>
+      
+      {syncStatus && (
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 class="text-blue-800 font-semibold">Sync Status</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="font-medium">Last Sync:</span> {new Date(syncStatus.lastSync).toLocaleString()}
+            </div>
+            <div>
+              <span class="font-medium">Products:</span> {syncStatus.totalProducts}
+            </div>
+            <div>
+              <span class="font-medium">Status:</span> 
+              <span class={`px-2 py-1 rounded text-xs ${
+                syncStatus.status === 'success' ? 'bg-green-100 text-green-800' :
+                syncStatus.status === 'error' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {syncStatus.status}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
       
       {error && (
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
@@ -84,18 +110,13 @@ const mockProduct = {
             <ProductCard 
               product={{
                 id: product.id,
-                name: product.title.rendered,
-                description: product.content.rendered,
-                price: "99.99", // Mock price since WordPress doesn't have prices
-                regular_price: "99.99",
-                sale_price: undefined,
-                images: product._embedded?.featured_media ? [
-                  {
-                    src: product._embedded.featured_media[0].source_url,
-                    alt: product.title.rendered
-                  }
-                ] : [],
-                permalink: product.link,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                regular_price: product.regular_price,
+                sale_price: product.sale_price,
+                images: product.images || [],
+                permalink: product.permalink,
                 slug: product.slug
               }}
               loading={false}

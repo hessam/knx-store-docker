@@ -65,30 +65,26 @@ jobs:
           echo "🔗 Vercel Dashboard: https://vercel.com/dashboard"
           echo "🌐 Your site should be available at your Vercel URL"
 
-      # Slack notifications temporarily disabled - add SLACK_BOT_TOKEN to secrets to enable
       - name: Notify Team on Success
         if: success()
-        run: |
-          echo "✅ Build & Test Success"
-          echo "🚀 Vercel auto-deployment in progress"
-          echo "📊 Ready for code review"
-          echo "🎯 PR review time target: <2 hours"
-          echo ""
-          echo "💡 To enable Slack notifications:"
-          echo "1. Add SLACK_BOT_TOKEN to GitHub Secrets"
-          echo "2. Uncomment Slack notification steps in workflow"
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "channel": "team-updates",
+              "text": "✅ **Build & Test Success** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🚀 **Quality Gates Passed:**\n• Bundle size: ✅ Under limit\n• Accessibility: ✅ No violations\n• Lighthouse CI: ✅ 95+ scores\n\n📊 **Next Steps:**\n• Vercel auto-deployment in progress\n• Ready for code review\n• PR review time target: <2 hours"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Notify Team on Failure
         if: failure()
-        run: |
-          echo "❌ Build & Test Failure"
-          echo "🔍 Check build logs for details"
-          echo "📋 Common issues:"
-          echo "• Bundle size exceeded limit"
-          echo "• Accessibility violations found"
-          echo "• Lighthouse scores below 95"
-          echo "• TypeScript compilation errors"
-          echo ""
-          echo "💡 To enable Slack notifications:"
-          echo "1. Add SLACK_BOT_TOKEN to GitHub Secrets"
-          echo "2. Uncomment Slack notification steps in workflow" 
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "channel": "team-updates",
+              "text": "❌ **Build & Test Failure** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🔍 **Action Required:**\n• Check build logs for details\n• Fix failing tests or quality gates\n• Re-run workflow after fixes\n\n📋 **Common Issues:**\n• Bundle size exceeded limit\n• Accessibility violations found\n• Lighthouse scores below 95\n• TypeScript compilation errors"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 

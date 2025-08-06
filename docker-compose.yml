@@ -19,8 +19,12 @@ services:
     environment:
       - NODE_ENV=development
       - WORDPRESS_API_URL=https://mohtavaly.com/wp-json
+      - WOOCOMMERCE_API_URL=https://mohtavaly.com/wp-json/wc/v3
       - WOOCOMMERCE_CONSUMER_KEY=${WOOCOMMERCE_CONSUMER_KEY}
       - WOOCOMMERCE_CONSUMER_SECRET=${WOOCOMMERCE_CONSUMER_SECRET}
+      - REDIS_HOST=localhost
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - SENDGRID_API_KEY=${SENDGRID_API_KEY}

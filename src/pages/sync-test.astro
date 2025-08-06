@@ -1,0 +1,137 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// This page will be used to test the sync functionality
+---
+
+<Layout title="WooCommerce Sync Test - KNX Store">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">WooCommerce Sync Test</h1>
+    
+    <!-- Sync Controls -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Sync Controls</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button 
+          id="manualSync" 
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          Manual Sync
+        </button>
+        <button 
+          id="startAutoSync" 
+          class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          Start Auto Sync
+        </button>
+        <button 
+          id="stopAutoSync" 
+          class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          Stop Auto Sync
+        </button>
+        <button 
+          id="healthCheck" 
+          class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          Health Check
+        </button>
+      </div>
+    </section>
+
+    <!-- Status Display -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Sync Status</h2>
+      <div id="statusDisplay" class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        <p class="text-gray-600">Click a button above to test sync functionality...</p>
+      </div>
+    </section>
+
+    <!-- API Endpoints -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">API Endpoints</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        <div class="space-y-2 text-sm">
+          <div>
+            <span class="font-medium">Manual Sync:</span> 
+            <code class="bg-gray-200 px-2 py-1 rounded">GET /api/sync?action=sync</code>
+          </div>
+          <div>
+            <span class="font-medium">Sync Status:</span> 
+            <code class="bg-gray-200 px-2 py-1 rounded">GET /api/sync?action=status</code>
+          </div>
+          <div>
+            <span class="font-medium">Health Check:</span> 
+            <code class="bg-gray-200 px-2 py-1 rounded">GET /api/sync?action=health</code>
+          </div>
+          <div>
+            <span class="font-medium">Start Auto Sync:</span> 
+            <code class="bg-gray-200 px-2 py-1 rounded">GET /api/sync?action=start</code>
+          </div>
+          <div>
+            <span class="font-medium">Stop Auto Sync:</span> 
+            <code class="bg-gray-200 px-2 py-1 rounded">GET /api/sync?action=stop</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Instructions -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Testing Instructions</h2>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <ol class="list-decimal list-inside space-y-2 text-blue-800">
+          <li>Click "Health Check" to verify WooCommerce API connectivity</li>
+          <li>Click "Manual Sync" to fetch products from WooCommerce</li>
+          <li>Click "Start Auto Sync" to begin automatic 5-minute sync</li>
+          <li>Update a product in WooCommerce admin panel</li>
+          <li>Wait up to 5 minutes for changes to appear on the site</li>
+          <li>Check sync status to monitor the process</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // Sync test functionality
+  const statusDisplay = document.getElementById('statusDisplay');
+  
+  async function callSyncAPI(action: string) {
+    try {
+      statusDisplay.innerHTML = '<p class="text-blue-600">Loading...</p>';
+      
+      const response = await fetch(`/api/sync?action=${action}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        statusDisplay.innerHTML = `
+          <div class="text-green-800">
+            <h3 class="font-semibold mb-2">✅ Success: ${action}</h3>
+            <pre class="bg-white p-4 rounded border text-sm overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+          </div>
+        `;
+      } else {
+        statusDisplay.innerHTML = `
+          <div class="text-red-800">
+            <h3 class="font-semibold mb-2">❌ Error: ${action}</h3>
+            <pre class="bg-white p-4 rounded border text-sm overflow-auto">${JSON.stringify(data, null, 2)}</pre>
+          </div>
+        `;
+      }
+    } catch (error) {
+      statusDisplay.innerHTML = `
+        <div class="text-red-800">
+          <h3 class="font-semibold mb-2">❌ Network Error</h3>
+          <p>${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Event listeners
+  document.getElementById('manualSync')?.addEventListener('click', () => callSyncAPI('sync'));
+  document.getElementById('startAutoSync')?.addEventListener('click', () => callSyncAPI('start'));
+  document.getElementById('stopAutoSync')?.addEventListener('click', () => callSyncAPI('stop'));
+  document.getElementById('healthCheck')?.addEventListener('click', () => callSyncAPI('health'));
+</script> 
