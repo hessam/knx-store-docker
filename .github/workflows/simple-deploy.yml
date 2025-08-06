@@ -65,26 +65,26 @@ jobs:
           echo "🔗 Vercel Dashboard: https://vercel.com/dashboard"
           echo "🌐 Your site should be available at your Vercel URL"
 
-      - name: Notify Team on Success
-        if: success()
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "channel": "team-updates",
-              "text": "✅ **Build & Test Success** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🚀 **Quality Gates Passed:**\n• Bundle size: ✅ Under limit\n• Accessibility: ✅ No violations\n• Lighthouse CI: ✅ 95+ scores\n\n📊 **Next Steps:**\n• Vercel auto-deployment in progress\n• Ready for code review\n• PR review time target: <2 hours"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+                        - name: Notify Team on Success
+                    if: success()
+                    uses: slackapi/slack-github-action@v1.24.0
+                    with:
+                      channel-id: 'C099N0578E5'
+                      payload: |
+                        {
+                          "text": "✅ **Build & Test Success** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🚀 **Quality Gates Passed:**\n• Bundle size: ✅ Under limit\n• Accessibility: ✅ No violations\n• Lighthouse CI: ✅ 95+ scores\n\n📊 **Next Steps:**\n• Vercel auto-deployment in progress\n• Ready for code review\n• PR review time target: <2 hours"
+                        }
+                    env:
+                      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-      - name: Notify Team on Failure
-        if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "channel": "team-updates",
-              "text": "❌ **Build & Test Failure** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🔍 **Action Required:**\n• Check build logs for details\n• Fix failing tests or quality gates\n• Re-run workflow after fixes\n\n📋 **Common Issues:**\n• Bundle size exceeded limit\n• Accessibility violations found\n• Lighthouse scores below 95\n• TypeScript compilation errors"
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
+                  - name: Notify Team on Failure
+                    if: failure()
+                    uses: slackapi/slack-github-action@v1.24.0
+                    with:
+                      channel-id: 'C099N0578E5'
+                      payload: |
+                        {
+                          "text": "❌ **Build & Test Failure** \n*Repository:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Triggered by:* ${{ github.actor }}\n\n🔍 **Action Required:**\n• Check build logs for details\n• Fix failing tests or quality gates\n• Re-run workflow after fixes\n\n📋 **Common Issues:**\n• Bundle size exceeded limit\n• Accessibility violations found\n• Lighthouse scores below 95\n• TypeScript compilation errors"
+                        }
+                    env:
+                      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
