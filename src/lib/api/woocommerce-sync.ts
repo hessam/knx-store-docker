@@ -233,17 +233,34 @@ export class WooCommerceSync {
     while (attempts < maxAttempts) {
       try {
         console.log(`[WooCommerce Sync] Attempting to fetch products (attempt ${attempts + 1}/${maxAttempts})`);
-        console.log(`[WooCommerce Sync] API URL: ${this.client.defaults.baseURL}/products`);
         
-        const response: AxiosResponse<WooCommerceProduct[]> = await this.client.get('/products', {
-          params: {
-            per_page: 100, // Maximum per page
-            ...params,
+        // Use fetch() instead of axios for better Vercel compatibility
+        const apiUrl = `${this._config.baseURL}/products`;
+        const searchParams = new URLSearchParams({
+          per_page: '100', // Maximum per page
+          ...Object.fromEntries(
+            Object.entries(params || {}).map(([key, value]) => [key, String(value)])
+          ),
+        });
+        
+        const url = `${apiUrl}?${searchParams.toString()}`;
+        console.log(`[WooCommerce Sync] Fetching from URL: ${url}`);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+            'Content-Type': 'application/json',
           },
         });
 
-        const products = response.data;
-        console.log(`[WooCommerce Sync] API response status: ${response.status}`);
+        console.log(`[WooCommerce Sync] Response status: ${response.status} ${response.statusText}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const products: WooCommerceProduct[] = await response.json();
         console.log(`[WooCommerce Sync] Products received: ${products.length}`);
         console.log(`[WooCommerce Sync] First product:`, products[0]?.name);
         
@@ -265,10 +282,8 @@ export class WooCommerceSync {
         attempts++;
         console.error(`[WooCommerce Sync] Attempt ${attempts}/${maxAttempts} failed:`, error.message);
         console.error(`[WooCommerce Sync] Error details:`, {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          method: error.config?.method,
+          message: error.message,
+          stack: error.stack,
         });
 
         if (attempts === maxAttempts) {
@@ -311,8 +326,23 @@ export class WooCommerceSync {
     }
 
     try {
-      const response: AxiosResponse<WooCommerceProduct> = await this.client.get(`/products/${productId}`);
-      const product = response.data;
+      // Use fetch() instead of axios for better Vercel compatibility
+      const url = `${this._config.baseURL}/products/${productId}`;
+      console.log(`[WooCommerce Sync] Fetching product from URL: ${url}`);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const product: WooCommerceProduct = await response.json();
       
       // Cache the result for 5 minutes
       await this.setCached(cacheKey, product, 300);
@@ -521,8 +551,16 @@ export class WooCommerceSync {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await this.client.get('/products', { params: { per_page: 1 } });
-      return response.status === 200;
+      // Use fetch() instead of axios for better Vercel compatibility
+      const url = `${this._config.baseURL}/products?per_page=1`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      return response.ok;
     } catch (error) {
       console.error('[WooCommerce Sync] Health check failed:', error);
       return false;
