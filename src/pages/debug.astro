@@ -129,7 +129,7 @@ const nodeEnv = import.meta.env.NODE_ENV || 'unknown';
                     performanceElement.innerHTML = `
                         <span class="status success">✅ Page Loaded</span><br>
                         <strong>Load Time:</strong> ${loadTime.toFixed(2)}ms<br>
-                        <strong>Navigation Type:</strong> ${performance.navigation.type}
+                        <strong>Navigation Type:</strong> ${(performance as any).navigation?.type || 'N/A'}
                     `;
                 }
             });

@@ -98,6 +98,8 @@ import Layout from '../layouts/Layout.astro';
   const statusDisplay = document.getElementById('statusDisplay');
   
   async function callSyncAPI(action: string) {
+    if (!statusDisplay) return;
+    
     try {
       statusDisplay.innerHTML = '<p class="text-blue-600">Loading...</p>';
       
@@ -119,11 +121,11 @@ import Layout from '../layouts/Layout.astro';
           </div>
         `;
       }
-    } catch (error) {
+    } catch (error: any) {
       statusDisplay.innerHTML = `
         <div class="text-red-800">
           <h3 class="font-semibold mb-2">❌ Network Error</h3>
-          <p>${error.message}</p>
+          <p>${error?.message || 'Unknown error'}</p>
         </div>
       `;
     }

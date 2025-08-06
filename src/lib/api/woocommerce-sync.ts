@@ -148,7 +148,7 @@ export class WooCommerceSync {
         password: config.redis.password,
         retryDelayOnFailover: 100,
         maxRetriesPerRequest: 3,
-      });
+      } as any);
 
       this.redis.on('error', (error) => {
         console.error('[WooCommerce Sync] Redis connection error:', error);
