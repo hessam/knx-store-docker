@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 
 // WooCommerce Product Interface
 export interface WooCommerceProduct {
@@ -140,23 +140,43 @@ export class WooCommerceSync {
       },
     });
 
-    // Initialize Redis if configured
-    if (config.redis) {
-      this.redis = new Redis({
-        host: config.redis.host,
-        port: config.redis.port,
-        password: config.redis.password,
-        retryDelayOnFailover: 100,
-        maxRetriesPerRequest: 3,
-      } as any);
-
-      this.redis.on('error', (error) => {
-        console.error('[WooCommerce Sync] Redis connection error:', error);
-      });
-    }
+    // Initialize Redis connection (Upstash or local)
+    this.initializeRedis();
 
     // Add request/response interceptors for logging
     this.setupInterceptors();
+  }
+
+  private initializeRedis(): void {
+    // Try Upstash Redis first (for Vercel)
+    const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    
+    if (upstashUrl && upstashToken) {
+      try {
+        this.redis = new Redis({
+          url: upstashUrl,
+          token: upstashToken,
+        });
+        console.log('[WooCommerce Sync] Upstash Redis connected successfully');
+        return;
+      } catch (error) {
+        console.error('[WooCommerce Sync] Failed to initialize Upstash Redis:', error);
+      }
+    }
+
+    // Fallback to local Redis (for development)
+    if (this._config.redis) {
+      try {
+        // For local development, we'll use a different approach
+        // since Upstash Redis doesn't support the same interface as ioredis
+        console.log('[WooCommerce Sync] Local Redis not available in production, using fallback');
+        this.redis = null;
+      } catch (error) {
+        console.error('[WooCommerce Sync] Failed to initialize local Redis:', error);
+        this.redis = null;
+      }
+    }
   }
 
   private setupInterceptors(): void {
@@ -212,6 +232,9 @@ export class WooCommerceSync {
 
     while (attempts < maxAttempts) {
       try {
+        console.log(`[WooCommerce Sync] Attempting to fetch products (attempt ${attempts + 1}/${maxAttempts})`);
+        console.log(`[WooCommerce Sync] API URL: ${this.client.defaults.baseURL}/products`);
+        
         const response: AxiosResponse<WooCommerceProduct[]> = await this.client.get('/products', {
           params: {
             per_page: 100, // Maximum per page
@@ -220,6 +243,9 @@ export class WooCommerceSync {
         });
 
         const products = response.data;
+        console.log(`[WooCommerce Sync] API response status: ${response.status}`);
+        console.log(`[WooCommerce Sync] Products received: ${products.length}`);
+        console.log(`[WooCommerce Sync] First product:`, products[0]?.name);
         
         // Cache the result for 5 minutes
         await this.setCached(cacheKey, products, 300);
@@ -238,6 +264,12 @@ export class WooCommerceSync {
       } catch (error: any) {
         attempts++;
         console.error(`[WooCommerce Sync] Attempt ${attempts}/${maxAttempts} failed:`, error.message);
+        console.error(`[WooCommerce Sync] Error details:`, {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          url: error.config?.url,
+          method: error.config?.method,
+        });
 
         if (attempts === maxAttempts) {
           console.error('[WooCommerce Sync] Max retries reached, using fallback data');
@@ -353,7 +385,7 @@ export class WooCommerceSync {
 
     try {
       const status = await this.redis.get('wc_sync_status');
-      return status ? JSON.parse(status) : null;
+      return status ? JSON.parse(status as string) : null;
     } catch (error) {
       console.error('[WooCommerce Sync] Error getting sync status:', error);
       return null;
@@ -367,7 +399,7 @@ export class WooCommerceSync {
     if (!this.redis) return;
 
     try {
-      await this.redis.set('wc_sync_status', JSON.stringify(status), 'EX', 3600); // 1 hour TTL
+      await this.redis.setex('wc_sync_status', 3600, JSON.stringify(status)); // 1 hour TTL
     } catch (error) {
       console.error('[WooCommerce Sync] Error updating sync status:', error);
     }
@@ -381,7 +413,7 @@ export class WooCommerceSync {
     
     try {
       const cached = await this.redis.get(key);
-      return cached ? JSON.parse(cached) : null;
+      return cached ? JSON.parse(cached as string) : null;
     } catch (error) {
       console.error(`[WooCommerce Sync] Cache get error for key ${key}:`, error);
       return null;
@@ -392,7 +424,7 @@ export class WooCommerceSync {
     if (!this.redis) return;
     
     try {
-      await this.redis.set(key, JSON.stringify(data), 'EX', ttl);
+      await this.redis.setex(key, ttl, JSON.stringify(data));
     } catch (error) {
       console.error(`[WooCommerce Sync] Cache set error for key ${key}:`, error);
     }
