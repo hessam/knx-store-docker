@@ -1,0 +1,130 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  canonical?: string;
+}
+
+const { title, description = "KNX Store - Professional Building Management Systems", canonical } = Astro.props;
+const canonicalURL = canonical || Astro.url.href;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    
+    <!-- Google Tag Manager -->
+    {process.env.GTM_ID && (
+      <script is:inline>
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','{process.env.GTM_ID}');
+      </script>
+    )}
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Google Tag Manager (noscript) -->
+    {process.env.GTM_ID && (
+      <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id={process.env.GTM_ID}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe>
+      </noscript>
+    )}
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+          <div class="flex items-center">
+            <a href="/" class="text-xl font-bold text-gray-900">
+              KNX Store
+            </a>
+          </div>
+          <nav class="hidden md:flex space-x-8">
+            <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+            <a href="/products/test" class="text-gray-600 hover:text-gray-900">Products</a>
+            <a href="/contact" class="text-gray-600 hover:text-gray-900">Contact</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <slot />
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 class="text-lg font-semibold mb-4">KNX Store</h3>
+            <p class="text-gray-300">
+              Professional Building Management Systems and KNX solutions for smart buildings.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+            <ul class="space-y-2">
+              <li><a href="/" class="text-gray-300 hover:text-white">Home</a></li>
+              <li><a href="/products/test" class="text-gray-300 hover:text-white">Products</a></li>
+              <li><a href="/contact" class="text-gray-300 hover:text-white">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold mb-4">Contact</h3>
+            <p class="text-gray-300">
+              Get in touch for professional KNX solutions.
+            </p>
+          </div>
+        </div>
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
+          <p>&copy; 2024 KNX Store. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  /* Global styles */
+  html {
+    font-family: system-ui, sans-serif;
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style> 

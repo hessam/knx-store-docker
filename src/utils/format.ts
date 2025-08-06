@@ -184,6 +184,14 @@ export function extractFirstImage(content: string): string | null {
 }
 
 /**
+ * Extract the first image from an array of image objects
+ */
+export function extractFirstImageFromArray(images: Array<{ src: string; alt: string }>): { src: string; alt: string } | null {
+  if (!images || images.length === 0) return null;
+  return images[0];
+}
+
+/**
  * Extract all image URLs from WordPress content
  */
 export function extractAllImages(content: string): string[] {

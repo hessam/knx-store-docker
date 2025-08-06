@@ -2,7 +2,6 @@
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import { getWordPressAPI } from '../../lib/api/wordpress';
-import { formatWordPressContent, formatDate } from '../../utils/format';
 
 // Fetch products from WordPress API
 let products: any[] = [];
@@ -75,7 +74,7 @@ const mockProduct = {
       
       {loading ? (
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, index) => (
+          {Array.from({ length: 8 }).map(() => (
             <ProductCard product={mockProduct} loading={true} />
           ))}
         </div>
@@ -108,28 +107,6 @@ const mockProduct = {
           <p class="text-gray-600">No products found.</p>
         </div>
       )}
-    </section>
-
-    <!-- Debug Information -->
-    <section class="bg-gray-50 rounded-lg p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Debug Information</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-          <h3 class="font-semibold text-gray-700">Environment Variables</h3>
-          <ul class="space-y-1 text-gray-600">
-            <li>WORDPRESS_API_URL: {import.meta.env.WORDPRESS_API_URL || 'Not set'}</li>
-            <li>NODE_ENV: {import.meta.env.NODE_ENV || 'Not set'}</li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="font-semibold text-gray-700">Product Data</h3>
-          <ul class="space-y-1 text-gray-600">
-            <li>Products loaded: {products.length}</li>
-            <li>Loading state: {loading ? 'Yes' : 'No'}</li>
-            <li>Error: {error || 'None'}</li>
-          </ul>
-        </div>
-      </div>
     </section>
   </main>
 </Layout> 

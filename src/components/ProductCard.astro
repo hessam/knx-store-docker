@@ -1,5 +1,5 @@
 ---
-import { formatWordPressContent, formatPrice, extractFirstImage } from '../utils/format';
+import { formatWordPressContent, formatPrice, extractFirstImageFromArray } from '../utils/format';
 import Card from './Card.astro';
 import Button from './Button.astro';
 
@@ -19,16 +19,16 @@ interface Props {
 }
 
 const { product, loading = false } = Astro.props;
-const { id, name, description, price, regular_price, sale_price, images, permalink, slug } = product;
+const { name, description, price, regular_price, sale_price, images, permalink } = product;
 
 const isOnSale = sale_price && sale_price !== regular_price;
-const mainImage = extractFirstImage(images);
+const mainImage = extractFirstImageFromArray(images);
 const formattedDescription = formatWordPressContent(description);
 ---
 
 <Card 
   variant="default" 
-  padding="p-4" 
+  padding="md" 
   hover={true} 
   clickable={true} 
   href={permalink}
