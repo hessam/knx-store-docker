@@ -347,7 +347,7 @@ export class WordPressAPI {
     }
   }
 
-  // Enhanced fetchProducts with caching
+  // Enhanced fetchProducts with caching and comprehensive error handling
   async fetchProducts(params?: {
     page?: number;
     per_page?: number;
