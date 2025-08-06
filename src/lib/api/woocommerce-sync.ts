@@ -459,7 +459,7 @@ export class WooCommerceSync {
             id: 1,
             date_created: new Date().toISOString(),
             date_modified: new Date().toISOString(),
-            src: 'https://via.placeholder.com/300x300?text=Fallback+Product',
+            src: 'https://picsum.photos/300/300?random=1',
             name: 'Fallback Product',
             alt: 'Fallback Product Image',
           },
