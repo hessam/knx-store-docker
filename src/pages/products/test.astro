@@ -8,11 +8,51 @@ let products: any[] = [];
 let error: string | null = null;
 let loading = true;
 let syncStatus: any = null;
+let directApiTest: any = null;
 
 try {
+  console.log('[Products Test] Starting product fetch...');
+  
+  // Test direct API call first
+  console.log('[Products Test] Testing direct API call...');
+  const apiUrl = process.env.WOOCOMMERCE_API_URL;
+  const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+  const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+  
+  if (apiUrl && consumerKey && consumerSecret) {
+    const response = await fetch(`${apiUrl}/products?per_page=8`, {
+      headers: {
+        'Authorization': `Basic ${btoa(`${consumerKey}:${consumerSecret}`)}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    directApiTest = {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+    };
+    
+    if (response.ok) {
+      const directProducts = await response.json();
+      directApiTest.productsCount = directProducts.length;
+      directApiTest.firstProduct = directProducts[0]?.name;
+      console.log('[Products Test] Direct API test successful:', directApiTest);
+    } else {
+      console.error('[Products Test] Direct API test failed:', directApiTest);
+    }
+  }
+  
   const wooCommerceSync = getWooCommerceSync();
+  console.log('[Products Test] WooCommerce sync instance created');
+  
+  console.log('[Products Test] Calling fetchProducts...');
   products = await wooCommerceSync.fetchProducts({ per_page: 8 });
+  console.log('[Products Test] fetchProducts completed');
+  
+  console.log('[Products Test] Calling getSyncStatus...');
   syncStatus = await wooCommerceSync.getSyncStatus();
+  console.log('[Products Test] getSyncStatus completed');
   
   // Debug logging
   console.log('[Products Test] Fetched products:', products.length);
@@ -23,6 +63,7 @@ try {
 } catch (err) {
   error = err instanceof Error ? err.message : 'Unknown error occurred';
   console.error('[Products Test] Error:', err);
+  console.error('[Products Test] Error stack:', err instanceof Error ? err.stack : 'No stack trace');
   loading = false;
 }
 
@@ -102,6 +143,35 @@ const mockProduct = {
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <h3 class="text-yellow-800 font-semibold">Sync Status</h3>
           <p class="text-yellow-700 text-sm">Sync status unavailable (Redis not available in Vercel)</p>
+        </div>
+      )}
+      
+      {directApiTest && (
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 class="text-blue-800 font-semibold">Direct API Test</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="font-medium">Status:</span> {directApiTest.status} {directApiTest.statusText}
+            </div>
+            <div>
+              <span class="font-medium">Success:</span> 
+              <span class={`px-2 py-1 rounded text-xs ${
+                directApiTest.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {directApiTest.ok ? 'Yes' : 'No'}
+              </span>
+            </div>
+            {directApiTest.productsCount && (
+              <div>
+                <span class="font-medium">Products:</span> {directApiTest.productsCount}
+              </div>
+            )}
+          </div>
+          {directApiTest.firstProduct && (
+            <div class="mt-2">
+              <span class="font-medium">First Product:</span> {directApiTest.firstProduct}
+            </div>
+          )}
         </div>
       )}
       
