@@ -13,9 +13,16 @@ try {
   const wooCommerceSync = getWooCommerceSync();
   products = await wooCommerceSync.fetchProducts({ per_page: 8 });
   syncStatus = await wooCommerceSync.getSyncStatus();
+  
+  // Debug logging
+  console.log('[Products Test] Fetched products:', products.length);
+  console.log('[Products Test] First product:', products[0]);
+  console.log('[Products Test] Sync status:', syncStatus);
+  
   loading = false;
 } catch (err) {
   error = err instanceof Error ? err.message : 'Unknown error occurred';
+  console.error('[Products Test] Error:', err);
   loading = false;
 }
 
@@ -91,6 +98,13 @@ const mockProduct = {
         </div>
       )}
       
+      {!syncStatus && (
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h3 class="text-yellow-800 font-semibold">Sync Status</h3>
+          <p class="text-yellow-700 text-sm">Sync status unavailable (Redis not available in Vercel)</p>
+        </div>
+      )}
+      
       {error && (
         <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <h3 class="text-red-800 font-semibold">Error Loading Products</h3>
@@ -127,6 +141,19 @@ const mockProduct = {
         <div class="text-center py-12">
           <p class="text-gray-600">No products found.</p>
         </div>
+      )}
+      
+      <!-- Debug Section -->
+      {products.length > 0 && (
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6">Debug: Raw Products Data</h2>
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h3 class="text-gray-800 font-semibold mb-2">First Product Raw Data:</h3>
+            <pre class="text-xs overflow-auto bg-white p-4 border rounded">
+              {JSON.stringify(products[0], null, 2)}
+            </pre>
+          </div>
+        </section>
       )}
     </section>
   </main>
