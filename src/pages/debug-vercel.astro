@@ -1,0 +1,247 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// Debug environment variables and API connectivity
+const envVars = {
+  WOOCOMMERCE_API_URL: process.env.WOOCOMMERCE_API_URL || 'NOT SET',
+  WOOCOMMERCE_CONSUMER_KEY: process.env.WOOCOMMERCE_CONSUMER_KEY ? 'SET (hidden)' : 'NOT SET',
+  WOOCOMMERCE_CONSUMER_SECRET: process.env.WOOCOMMERCE_CONSUMER_SECRET ? 'SET (hidden)' : 'NOT SET',
+  REDIS_HOST: process.env.REDIS_HOST || 'NOT SET',
+  REDIS_PORT: process.env.REDIS_PORT || 'NOT SET',
+  NODE_ENV: process.env.NODE_ENV || 'NOT SET',
+  VERCEL_ENV: process.env.VERCEL_ENV || 'NOT SET',
+  VERCEL_URL: process.env.VERCEL_URL || 'NOT SET',
+};
+
+// Test API connectivity
+let apiTest = null;
+let syncTest = null;
+
+try {
+  // Test direct API call
+  const apiUrl = process.env.WOOCOMMERCE_API_URL;
+  const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
+  const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+  
+  if (apiUrl && consumerKey && consumerSecret) {
+    const response = await fetch(`${apiUrl}/products?per_page=1`, {
+      headers: {
+        'Authorization': `Basic ${btoa(`${consumerKey}:${consumerSecret}`)}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    apiTest = {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      url: response.url,
+    };
+    
+    if (response.ok) {
+      const data = await response.json();
+      apiTest.data = data;
+    }
+  }
+} catch (error) {
+  apiTest = {
+    error: error.message,
+    stack: error.stack,
+  };
+}
+
+// Test sync endpoint
+try {
+  const syncResponse = await fetch('/api/sync?action=status');
+  syncTest = {
+    status: syncResponse.status,
+    statusText: syncResponse.statusText,
+    ok: syncResponse.ok,
+  };
+  
+  if (syncResponse.ok) {
+    const syncData = await syncResponse.json();
+    syncTest.data = syncData;
+  }
+} catch (error) {
+  syncTest = {
+    error: error.message,
+  };
+}
+---
+
+<Layout title="Vercel Debug - Environment Variables & API Test">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Vercel Debug - Environment Variables & API Test</h1>
+    
+    <!-- Environment Variables -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Environment Variables</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(envVars).map(([key, value]) => (
+            <div class="flex justify-between items-center">
+              <span class="font-medium text-gray-700">{key}:</span>
+              <span class={`px-2 py-1 rounded text-sm ${
+                value === 'NOT SET' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+              }`}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Direct API Test -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Direct WooCommerce API Test</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        {apiTest ? (
+          <div>
+            <div class="mb-4">
+              <span class="font-medium">Status:</span>
+              <span class={`ml-2 px-2 py-1 rounded text-sm ${
+                apiTest.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {apiTest.status} {apiTest.statusText}
+              </span>
+            </div>
+            {apiTest.url && (
+              <div class="mb-4">
+                <span class="font-medium">URL:</span>
+                <span class="ml-2 text-sm text-gray-600">{apiTest.url}</span>
+              </div>
+            )}
+            {apiTest.error ? (
+              <div class="mb-4">
+                <span class="font-medium text-red-800">Error:</span>
+                <pre class="mt-2 p-3 bg-red-50 border border-red-200 rounded text-sm overflow-auto">
+                  {apiTest.error}
+                </pre>
+              </div>
+            ) : apiTest.data ? (
+              <div class="mb-4">
+                <span class="font-medium">Response Data:</span>
+                <pre class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm overflow-auto">
+                  {JSON.stringify(apiTest.data, null, 2)}
+                </pre>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <p class="text-gray-600">API test not performed - missing credentials</p>
+        )}
+      </div>
+    </section>
+
+    <!-- Sync API Test -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Sync API Test</h2>
+      <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+        {syncTest ? (
+          <div>
+            <div class="mb-4">
+              <span class="font-medium">Status:</span>
+              <span class={`ml-2 px-2 py-1 rounded text-sm ${
+                syncTest.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {syncTest.status} {syncTest.statusText}
+              </span>
+            </div>
+            {syncTest.error ? (
+              <div class="mb-4">
+                <span class="font-medium text-red-800">Error:</span>
+                <pre class="mt-2 p-3 bg-red-50 border border-red-200 rounded text-sm overflow-auto">
+                  {syncTest.error}
+                </pre>
+              </div>
+            ) : syncTest.data ? (
+              <div class="mb-4">
+                <span class="font-medium">Response Data:</span>
+                <pre class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm overflow-auto">
+                  {JSON.stringify(syncTest.data, null, 2)}
+                </pre>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <p class="text-gray-600">Sync test not performed</p>
+        )}
+      </div>
+    </section>
+
+    <!-- Manual Test Buttons -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manual Tests</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button id="testApi" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Test Direct API
+        </button>
+        <button id="testSync" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Test Sync API
+        </button>
+        <button id="testProducts" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+          Test Products Page
+        </button>
+      </div>
+      <div id="testResults" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg hidden">
+        <pre id="testOutput" class="text-sm overflow-auto"></pre>
+      </div>
+    </section>
+
+    <!-- Troubleshooting Guide -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Troubleshooting Guide</h2>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <h3 class="font-semibold text-yellow-800 mb-2">Common Issues:</h3>
+        <ul class="list-disc list-inside space-y-1 text-sm text-yellow-700">
+          <li><strong>Environment variables not set:</strong> Check Vercel dashboard → Settings → Environment Variables</li>
+          <li><strong>Wrong API credentials:</strong> Verify WooCommerce API keys are correct</li>
+          <li><strong>API URL incorrect:</strong> Ensure WOOCOMMERCE_API_URL ends with /wp-json/wc/v3</li>
+          <li><strong>Network issues:</strong> Check if Vercel can reach your WooCommerce site</li>
+          <li><strong>API permissions:</strong> Ensure API keys have read permissions</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  // Manual test functionality
+  const testResults = document.getElementById('testResults');
+  const testOutput = document.getElementById('testOutput');
+  
+  async function runTest(testType) {
+    testResults.classList.remove('hidden');
+    testOutput.textContent = 'Running test...';
+    
+    try {
+      let response;
+      let data;
+      
+      switch (testType) {
+        case 'api':
+          response = await fetch('/api/sync?action=health');
+          data = await response.json();
+          break;
+        case 'sync':
+          response = await fetch('/api/sync?action=status');
+          data = await response.json();
+          break;
+        case 'products':
+          response = await fetch('/api/sync?action=sync');
+          data = await response.json();
+          break;
+      }
+      
+      testOutput.textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+      testOutput.textContent = `Error: ${error.message}`;
+    }
+  }
+  
+  document.getElementById('testApi')?.addEventListener('click', () => runTest('api'));
+  document.getElementById('testSync')?.addEventListener('click', () => runTest('sync'));
+  document.getElementById('testProducts')?.addEventListener('click', () => runTest('products'));
+</script> 

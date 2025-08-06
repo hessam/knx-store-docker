@@ -521,9 +521,23 @@ export const getWooCommerceSync = (): WooCommerceSync => {
     const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || '';
     const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || '';
 
+    console.log('[WooCommerce Sync] Environment check:', {
+      baseURL,
+      consumerKey: consumerKey ? 'SET' : 'NOT SET',
+      consumerSecret: consumerSecret ? 'SET' : 'NOT SET',
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+    });
+
     if (!consumerKey || !consumerSecret) {
+      console.error('[WooCommerce Sync] Missing credentials:', {
+        consumerKey: !!consumerKey,
+        consumerSecret: !!consumerSecret,
+      });
       throw new Error('WooCommerce API credentials not configured. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET environment variables.');
     }
+
+    console.log('[WooCommerce Sync] Creating instance with URL:', baseURL);
 
     wooCommerceSyncInstance = createWooCommerceSync({
       baseURL,
