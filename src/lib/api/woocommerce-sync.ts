@@ -119,12 +119,12 @@ export interface SyncStatus {
 export class WooCommerceSync {
   private client: AxiosInstance;
   private redis: Redis | null = null;
-  private config: WooCommerceConfig;
+  private _config: WooCommerceConfig;
   private syncInterval: NodeJS.Timeout | null = null;
   private isRunning: boolean = false;
 
   constructor(config: WooCommerceConfig) {
-    this.config = config;
+    this._config = config;
     
     // Initialize Axios client with WooCommerce authentication
     this.client = axios.create({

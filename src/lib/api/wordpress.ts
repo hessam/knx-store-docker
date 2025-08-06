@@ -136,11 +136,11 @@ export interface WordPressConfig {
 // WordPress API Client Class
 export class WordPressAPI {
   private client: AxiosInstance;
-  private config: WordPressConfig;
+  private _config: WordPressConfig;
   private redis: Redis | null = null;
 
   constructor(config: WordPressConfig) {
-    this.config = config;
+    this._config = config;
     
     // Initialize Redis if configured
     if (config.redis) {

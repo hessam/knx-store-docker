@@ -211,10 +211,10 @@ export interface WooCommerceConfig {
 // WooCommerce API Client Class
 export class WooCommerceAPI {
   private client: AxiosInstance;
-  private config: WooCommerceConfig;
+  private _config: WooCommerceConfig;
 
   constructor(config: WooCommerceConfig) {
-    this.config = config;
+    this._config = config;
     
     // Create basic auth header
     const auth = Buffer.from(`${config.consumerKey}:${config.consumerSecret}`).toString('base64');

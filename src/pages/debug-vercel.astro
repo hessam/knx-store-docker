@@ -14,8 +14,8 @@ const envVars = {
 };
 
 // Test API connectivity
-let apiTest = null;
-let syncTest = null;
+let apiTest: any = null;
+let syncTest: any = null;
 
 try {
   // Test direct API call
@@ -43,7 +43,7 @@ try {
       apiTest.data = data;
     }
   }
-} catch (error) {
+} catch (error: any) {
   apiTest = {
     error: error.message,
     stack: error.stack,
@@ -63,7 +63,7 @@ try {
     const syncData = await syncResponse.json();
     syncTest.data = syncData;
   }
-} catch (error) {
+} catch (error: any) {
   syncTest = {
     error: error.message,
   };
@@ -212,7 +212,9 @@ try {
   const testResults = document.getElementById('testResults');
   const testOutput = document.getElementById('testOutput');
   
-  async function runTest(testType) {
+  async function runTest(testType: string) {
+    if (!testResults || !testOutput) return;
+    
     testResults.classList.remove('hidden');
     testOutput.textContent = 'Running test...';
     
@@ -236,7 +238,7 @@ try {
       }
       
       testOutput.textContent = JSON.stringify(data, null, 2);
-    } catch (error) {
+    } catch (error: any) {
       testOutput.textContent = `Error: ${error.message}`;
     }
   }
