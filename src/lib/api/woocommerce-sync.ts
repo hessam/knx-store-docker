@@ -535,7 +535,12 @@ export class WooCommerceSync {
   async cleanup(): Promise<void> {
     this.stopAutoSync();
     if (this.redis) {
-      await this.redis.quit();
+      try {
+        // Upstash Redis doesn't have a quit method, just log the cleanup
+        console.log('[WooCommerce Sync] Redis cleanup completed');
+      } catch (error) {
+        console.error('[WooCommerce Sync] Error during Redis cleanup:', error);
+      }
     }
   }
 }
