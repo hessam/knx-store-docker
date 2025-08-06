@@ -65,49 +65,30 @@ jobs:
           echo "🔗 Vercel Dashboard: https://vercel.com/dashboard"
           echo "🌐 Your site should be available at your Vercel URL"
 
+      # Slack notifications temporarily disabled - add SLACK_BOT_TOKEN to secrets to enable
       - name: Notify Team on Success
         if: success()
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel-id: 'team-updates'
-          text: |
-            ✅ **Build & Test Success** 
-            *Repository:* ${{ github.repository }}
-            *Branch:* ${{ github.ref_name }}
-            *Commit:* ${{ github.sha }}
-            *Triggered by:* ${{ github.actor }}
-            
-            🚀 **Quality Gates Passed:**
-            • Bundle size: ✅ Under limit
-            • Accessibility: ✅ No violations
-            • Lighthouse CI: ✅ 95+ scores
-            
-            📊 **Next Steps:**
-            • Vercel auto-deployment in progress
-            • Ready for code review
-            • PR review time target: <2 hours
+        run: |
+          echo "✅ Build & Test Success"
+          echo "🚀 Vercel auto-deployment in progress"
+          echo "📊 Ready for code review"
+          echo "🎯 PR review time target: <2 hours"
+          echo ""
+          echo "💡 To enable Slack notifications:"
+          echo "1. Add SLACK_BOT_TOKEN to GitHub Secrets"
+          echo "2. Uncomment Slack notification steps in workflow"
 
       - name: Notify Team on Failure
         if: failure()
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel-id: 'team-updates'
-          text: |
-            ❌ **Build & Test Failure** 
-            *Repository:* ${{ github.repository }}
-            *Branch:* ${{ github.ref_name }}
-            *Commit:* ${{ github.sha }}
-            *Triggered by:* ${{ github.actor }}
-            
-            🔍 **Action Required:**
-            • Check build logs for details
-            • Fix failing tests or quality gates
-            • Re-run workflow after fixes
-            
-            📋 **Common Issues:**
-            • Bundle size exceeded limit
-            • Accessibility violations found
-            • Lighthouse scores below 95
-            • TypeScript compilation errors 
+        run: |
+          echo "❌ Build & Test Failure"
+          echo "🔍 Check build logs for details"
+          echo "📋 Common issues:"
+          echo "• Bundle size exceeded limit"
+          echo "• Accessibility violations found"
+          echo "• Lighthouse scores below 95"
+          echo "• TypeScript compilation errors"
+          echo ""
+          echo "💡 To enable Slack notifications:"
+          echo "1. Add SLACK_BOT_TOKEN to GitHub Secrets"
+          echo "2. Uncomment Slack notification steps in workflow" 

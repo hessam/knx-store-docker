@@ -127,35 +127,18 @@ jobs:
               console.log(`Assigned reviewers: ${reviewers.join(', ')}`);
             }
 
+      # Slack notifications temporarily disabled - add SLACK_BOT_TOKEN to secrets to enable
       - name: Notify Slack - PR Ready for Review
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel-id: 'code-reviews'
-          text: |
-            🔍 **New PR Ready for Review**
-            
-            *Repository:* ${{ github.repository }}
-            *PR:* #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-            *Author:* ${{ github.event.pull_request.user.login }}
-            *Branch:* ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}
-            
-            📋 **Reviewers Assigned:**
-            • Senior: ${{ steps.reviewers.outputs.senior_reviewers }}
-            • Junior: ${{ steps.reviewers.outputs.junior_reviewers }}
-            
-            🎯 **Review Targets:**
-            • Review time: <2 hours
-            • Merge time: <24 hours
-            • Required approvals: 2
-            
-            🔗 **Links:**
-            • PR: ${{ github.event.pull_request.html_url }}
-            • Files changed: ${{ github.event.pull_request.changed_files }} files
-            • Additions: +${{ github.event.pull_request.additions }}
-            • Deletions: -${{ github.event.pull_request.deletions }}
-            
-            ⏰ **Reminder:** Please review within 2 hours to maintain our target review time!
+        run: |
+          echo "🔍 New PR Ready for Review"
+          echo "📋 Reviewers Assigned:"
+          echo "• Senior: ${{ steps.reviewers.outputs.senior_reviewers }}"
+          echo "• Junior: ${{ steps.reviewers.outputs.junior_reviewers }}"
+          echo "🎯 Review Targets: <2 hours review, <24 hours merge"
+          echo ""
+          echo "💡 To enable Slack notifications:"
+          echo "1. Add SLACK_BOT_TOKEN to GitHub Secrets"
+          echo "2. Uncomment Slack notification steps in workflow"
 
       - name: Add PR Labels
         uses: actions/github-script@v7
