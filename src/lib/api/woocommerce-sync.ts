@@ -148,12 +148,21 @@ export class WooCommerceSync {
   }
 
   private initializeRedis(): void {
+    console.log('[WooCommerce Sync] Initializing Redis...');
+    console.log('[WooCommerce Sync] Environment variables:', {
+      UPSTASH_REDIS_REST_URL: !!process.env.UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL_ENV: process.env.VERCEL_ENV,
+    });
+
     // Try Upstash Redis first (for Vercel)
     const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
     const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
     
     if (upstashUrl && upstashToken) {
       try {
+        console.log('[WooCommerce Sync] Attempting to connect to Upstash Redis...');
         this.redis = new Redis({
           url: upstashUrl,
           token: upstashToken,
@@ -166,8 +175,9 @@ export class WooCommerceSync {
     }
 
     // Fallback to local Redis (for development)
-    if (this._config.redis) {
+    if (this._config.redis && process.env.NODE_ENV === 'development') {
       try {
+        console.log('[WooCommerce Sync] Attempting to connect to local Redis...');
         // For local development, we'll use a different approach
         // since Upstash Redis doesn't support the same interface as ioredis
         console.log('[WooCommerce Sync] Local Redis not available in production, using fallback');
@@ -176,6 +186,9 @@ export class WooCommerceSync {
         console.error('[WooCommerce Sync] Failed to initialize local Redis:', error);
         this.redis = null;
       }
+    } else {
+      console.log('[WooCommerce Sync] No Redis configuration available, setting to null');
+      this.redis = null;
     }
   }
 
@@ -411,11 +424,26 @@ export class WooCommerceSync {
    * Get sync status
    */
   async getSyncStatus(): Promise<SyncStatus | null> {
-    if (!this.redis) return null;
+    console.log('[WooCommerce Sync] getSyncStatus called, redis instance:', !!this.redis);
+    
+    if (!this.redis) {
+      console.log('[WooCommerce Sync] Redis not available, returning null');
+      return null;
+    }
 
     try {
+      console.log('[WooCommerce Sync] Attempting to get wc_sync_status from Redis');
       const status = await this.redis.get('wc_sync_status');
-      return status ? JSON.parse(status as string) : null;
+      console.log('[WooCommerce Sync] Raw status from Redis:', status);
+      
+      if (status) {
+        const parsedStatus = JSON.parse(status as string);
+        console.log('[WooCommerce Sync] Parsed sync status:', parsedStatus);
+        return parsedStatus;
+      } else {
+        console.log('[WooCommerce Sync] No status found in Redis');
+        return null;
+      }
     } catch (error) {
       console.error('[WooCommerce Sync] Error getting sync status:', error);
       return null;
