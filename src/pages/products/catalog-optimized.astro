@@ -160,7 +160,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
       // Progressive loading for better performance
       let isLoading = false;
       let currentPage = 1;
-      const perPage = {perPage};
+      const pageSize = {perPage};
       
       // Client-side instant filtering with debouncing
       const searchInput = document.querySelector('input[name="search"]');
@@ -197,7 +197,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
         
         try {
           currentPage++;
-          const response = await fetch(`/api/products?page=${currentPage}&per_page=${perPage}`);
+          const response = await fetch(`/api/products?page=${currentPage}&per_page=${pageSize}`);
           const newProducts = await response.json();
           
           if (newProducts.length > 0) {
