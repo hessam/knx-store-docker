@@ -12,9 +12,29 @@ export default defineConfig({
   vite: {
     define: {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    },
+    // Performance optimizations
+    build: {
+      minify: 'terser',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['astro']
+          }
+        }
+      }
+    },
+    // Optimize CSS
+    css: {
+      devSourcemap: false
     }
   },
 
   // SEO and Performance
-  site: 'https://knx-store.vercel.app'
+  site: 'https://knx-store.vercel.app',
+  
+  // Performance optimizations
+  experimental: {
+    optimizeHoistedScript: true
+  }
 }); 

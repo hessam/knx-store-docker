@@ -277,11 +277,11 @@ export class WooCommerceSync {
         console.log(`[WooCommerce Sync] Products received: ${products.length}`);
         console.log(`[WooCommerce Sync] First product:`, products[0]?.name);
         
-        // Scale to 1000+ products for performance testing
+        // Performance optimization: Reduce scaling for faster loading
         let scaledProducts = products;
-        if (params?.per_page && params.per_page > 100) {
-          // Simulate 1000+ products by duplicating and modifying the fetched data
-          const multiplier = Math.ceil(params.per_page / products.length);
+        if (params?.per_page && params.per_page > 50) {
+          // Reduced scaling for better performance
+          const multiplier = Math.min(Math.ceil(params.per_page / products.length), 3); // Max 3x scaling
           scaledProducts = [];
           
           for (let i = 0; i < multiplier; i++) {

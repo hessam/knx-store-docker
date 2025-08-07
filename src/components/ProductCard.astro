@@ -59,6 +59,10 @@ const formattedDescription = formatWordPressContent(description);
             alt={mainImage.alt || name}
             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             loading="lazy"
+            width="300"
+            height="300"
+            decoding="async"
+            fetchpriority="low"
           />
         ) : (
           <div class="w-full h-full flex items-center justify-center bg-gray-200">
