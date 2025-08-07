@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosInstance, AxiosResponse } from 'axios';
+import type { AxiosInstance } from 'axios';
 import { Redis } from '@upstash/redis';
 
 // WooCommerce Product Interface

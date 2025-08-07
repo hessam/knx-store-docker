@@ -3,6 +3,9 @@ import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import { getWooCommerceSync } from '../../lib/api/woocommerce-sync';
 
+// Enable static generation for better performance
+export const prerender = true;
+
 // Get pagination parameters
 const url = new URL(Astro.request.url);
 const page = parseInt(url.searchParams.get('page') || '1');
@@ -13,10 +16,13 @@ const search = url.searchParams.get('search') || '';
 let products: any[] = [];
 let error: string | null = null;
 let totalProducts = 0;
+const startTime = Date.now();
 
 try {
   const wooCommerceSync = getWooCommerceSync();
-  products = await wooCommerceSync.fetchProducts({ per_page: 1000 });
+  // Fetch only what we need for current page + some buffer for filtering
+  const fetchCount = Math.min(perPage * 3, 100); // Max 100 products for performance
+  products = await wooCommerceSync.fetchProducts({ per_page: fetchCount });
   totalProducts = products.length;
 } catch (err) {
   error = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -37,10 +43,10 @@ const paginatedProducts = products.slice(startIndex, endIndex);
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
       <h3 class="text-blue-800 font-semibold mb-2">Performance Metrics</h3>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+        <div><span class="font-medium">Load Time:</span> <span class="text-green-600 font-mono">{Date.now() - startTime}ms</span></div>
         <div><span class="font-medium">Total Products:</span> {totalProducts}</div>
         <div><span class="font-medium">Page Size:</span> {perPage}</div>
-        <div><span class="font-medium">Current Page:</span> {page}</div>
-        <div><span class="font-medium">Total Pages:</span> {totalPages}</div>
+        <div><span class="font-medium">Current Page:</span> {page} of {totalPages}</div>
       </div>
     </div>
 
@@ -132,24 +138,26 @@ const paginatedProducts = products.slice(startIndex, endIndex);
     <!-- Client-side Instant Filtering -->
     <script>
       // Client-side instant filtering for better UX
-      const searchInput = document.querySelector('input[name="search"]');
+      const searchInput = document.querySelector('input[name="search"]') as HTMLInputElement;
       const productGrid = document.querySelector('.grid');
       
       if (searchInput && productGrid) {
-        let searchTimeout;
+        let searchTimeout: number;
         
         searchInput.addEventListener('input', (e) => {
           clearTimeout(searchTimeout);
-          const searchTerm = e.target.value.toLowerCase();
+          const target = e.target as HTMLInputElement;
+          const searchTerm = target.value.toLowerCase();
           
           // Debounce search for better performance
           searchTimeout = setTimeout(() => {
             const productCards = productGrid.querySelectorAll('[data-product-name]');
             
             productCards.forEach((card) => {
-              const productName = card.dataset.productName?.toLowerCase() || '';
+              const element = card as HTMLElement;
+              const productName = element.dataset.productName?.toLowerCase() || '';
               const isVisible = productName.includes(searchTerm);
-              card.style.display = isVisible ? 'block' : 'none';
+              element.style.display = isVisible ? 'block' : 'none';
             });
           }, 300);
         });
