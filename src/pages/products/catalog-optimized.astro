@@ -160,7 +160,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
       // Progressive loading for better performance
       let isLoading = false;
       let currentPage = 1;
-      const pageSize = {perPage};
+      const pageSize = 20; // Default page size for progressive loading
       
       // Client-side instant filtering with debouncing
       const searchInput = document.querySelector('input[name="search"]');
