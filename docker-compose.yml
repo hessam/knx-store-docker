@@ -16,12 +16,16 @@ services:
       - "4004:4004"  # Static file server
       - "6006:6006"  # Storybook
     working_dir: /app
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
-      - WORDPRESS_API_URL=https://mohtavaly.com/wp-json
-      - WOOCOMMERCE_API_URL=https://mohtavaly.com/wp-json/wc/v3
+      - WORDPRESS_API_URL=${WORDPRESS_API_URL}
+      - WOOCOMMERCE_API_URL=${WOOCOMMERCE_API_URL}
       - WOOCOMMERCE_CONSUMER_KEY=${WOOCOMMERCE_CONSUMER_KEY}
       - WOOCOMMERCE_CONSUMER_SECRET=${WOOCOMMERCE_CONSUMER_SECRET}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
       - REDIS_HOST=localhost
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
