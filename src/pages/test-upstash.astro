@@ -1,0 +1,98 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getWooCommerceSync } from '../lib/api/woocommerce-sync';
+
+// Test Upstash Redis integration
+let redisStatus = 'Unknown';
+let cacheTest = 'Not tested';
+let performanceTest = 'Not tested';
+let error = null;
+
+try {
+  const wooCommerceSync = getWooCommerceSync();
+  
+  // Test Redis connection
+  const syncStatus = await wooCommerceSync.getSyncStatus();
+  redisStatus = syncStatus ? 'Connected' : 'Not connected';
+  
+  // Test cache performance
+  const startTime = Date.now();
+  const products = await wooCommerceSync.fetchProducts({ per_page: 20 });
+  const endTime = Date.now();
+  const loadTime = endTime - startTime;
+  
+  performanceTest = `${loadTime}ms (${products.length} products)`;
+  cacheTest = loadTime < 1000 ? 'Fast (cached)' : 'Slow (API call)';
+  
+} catch (err) {
+  error = err instanceof Error ? err.message : 'Unknown error';
+  redisStatus = 'Error';
+}
+---
+
+<Layout title="Upstash Redis Integration Test - KNX Store">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Upstash Redis Integration Test</h1>
+    
+    <!-- Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Redis Status</h3>
+        <p class={`text-lg font-mono ${
+          redisStatus === 'Connected' ? 'text-green-600' : 
+          redisStatus === 'Error' ? 'text-red-600' : 'text-yellow-600'
+        }`}>
+          {redisStatus}
+        </p>
+      </div>
+      
+      <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Cache Performance</h3>
+        <p class={`text-lg font-mono ${
+          cacheTest.includes('Fast') ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {cacheTest}
+        </p>
+      </div>
+      
+      <div class="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Load Time</h3>
+        <p class={`text-lg font-mono ${
+          performanceTest.includes('ms') && parseInt(performanceTest) < 800 ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {performanceTest}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Target Performance -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+      <h3 class="text-blue-800 font-semibold mb-2">Target Performance</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+        <div><span class="font-medium">Target Load Time:</span> <span class="text-green-600 font-mono">≤800ms</span></div>
+        <div><span class="font-medium">Cache Hit Rate:</span> <span class="text-green-600 font-mono">>95%</span></div>
+        <div><span class="font-medium">Redis TTL:</span> <span class="text-green-600 font-mono">1 hour</span></div>
+        <div><span class="font-medium">Status:</span> <span class="text-green-600 font-mono">Ready for Vercel</span></div>
+      </div>
+    </div>
+    
+    <!-- Error Display -->
+    {error && (
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
+        <h3 class="text-red-800 font-semibold mb-2">Error</h3>
+        <p class="text-red-600">{error}</p>
+      </div>
+    )}
+    
+    <!-- Instructions -->
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+      <h3 class="text-gray-800 font-semibold mb-4">Next Steps for Vercel Deployment</h3>
+      <ol class="list-decimal list-inside space-y-2 text-gray-700">
+        <li>Add <code class="bg-gray-200 px-1 rounded">UPSTASH_REDIS_REST_URL</code> to Vercel environment variables</li>
+        <li>Add <code class="bg-gray-200 px-1 rounded">UPSTASH_REDIS_REST_TOKEN</code> to Vercel environment variables</li>
+        <li>Deploy to Vercel and test the optimized catalog at <code class="bg-gray-200 px-1 rounded">/products/catalog-optimized</code></li>
+        <li>Verify load time is <800ms on 4G networks</li>
+      </ol>
+    </div>
+  </main>
+</Layout> 
