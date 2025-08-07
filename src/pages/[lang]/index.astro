@@ -1,0 +1,94 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { loadTranslations, isValidLanguage } from '../../lib/i18n';
+
+const { lang } = Astro.params;
+
+// Validate language
+if (!lang || !isValidLanguage(lang)) {
+  return Astro.redirect('/en/');
+}
+
+// Load translations
+const t = loadTranslations(lang);
+
+// Set page title and description
+const title = `${t.welcome} - KNX Store`;
+const description = t.professionalBuildingManagement;
+---
+
+<Layout title={title} description={description}>
+  <main class="container mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <section class="text-center py-16">
+      <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+        {t.welcome}
+      </h1>
+      <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+        {t.professionalBuildingManagement}
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a 
+          href={`/${lang}/products/catalog-optimized`}
+          class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+        >
+          {t.shopNow}
+        </a>
+        <a 
+          href={`/${lang}/contact`}
+          class="border border-blue-600 text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-50 transition-colors"
+        >
+          {t.contact}
+        </a>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">{t.smartBuildingSolutions}</h3>
+          <p class="text-gray-600">{t.advancedAutomation}</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">{t.professionalSolutions}</h3>
+          <p class="text-gray-600">{t.buildingAutomation}</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">{t.smartHome}</h3>
+          <p class="text-gray-600">{t.knxProducts}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-gray-50 rounded-lg p-8 text-center">
+      <h2 class="text-3xl font-bold mb-4">{t.smartBuildingSolutions}</h2>
+      <p class="text-gray-600 mb-6">{t.advancedAutomation}</p>
+      <a 
+        href={`/${lang}/products/catalog-optimized`}
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+      >
+        {t.shopNow}
+      </a>
+    </section>
+  </main>
+</Layout> 

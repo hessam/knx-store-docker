@@ -1,4 +1,6 @@
 ---
+import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+
 export interface Props {
   title: string;
   description?: string;
@@ -7,6 +9,11 @@ export interface Props {
 
 const { title, description = "KNX Store - Professional Building Management Systems", canonical } = Astro.props;
 const canonicalURL = canonical || Astro.url.href;
+
+// Get current language from URL path
+const pathname = Astro.url.pathname;
+const langMatch = pathname.match(/^\/([a-z]{2})\//);
+const currentLang = langMatch ? langMatch[1] : 'en';
 ---
 
 <!DOCTYPE html>
@@ -61,10 +68,11 @@ const canonicalURL = canonical || Astro.url.href;
             </a>
           </div>
           <nav class="hidden md:flex space-x-8">
-            <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
-            <a href="/products/test" class="text-gray-600 hover:text-gray-900">Products</a>
-            <a href="/contact" class="text-gray-600 hover:text-gray-900">Contact</a>
+            <a href={currentLang === 'en' ? '/' : `/${currentLang}/`} class="text-gray-600 hover:text-gray-900">Home</a>
+            <a href={currentLang === 'en' ? '/products/test' : `/${currentLang}/products/catalog-optimized`} class="text-gray-600 hover:text-gray-900">Products</a>
+            <a href={currentLang === 'en' ? '/contact' : `/${currentLang}/contact`} class="text-gray-600 hover:text-gray-900">Contact</a>
           </nav>
+          <LanguageSwitcher />
         </div>
       </div>
     </header>

@@ -2,6 +2,29 @@ import axios from 'axios';
 import type { AxiosInstance } from 'axios';
 import { Redis } from '@upstash/redis';
 
+// Google Translate API integration
+const GOOGLE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
+
+async function translateText(text: string, targetLang: string): Promise<string> {
+  if (!GOOGLE_API_KEY || !text || targetLang === 'en') {
+    return text;
+  }
+
+  try {
+    const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_API_KEY}`;
+    const response = await axios.post(url, {
+      q: text,
+      target: targetLang,
+      format: 'text',
+    });
+    
+    return response.data.data.translations[0].translatedText;
+  } catch (error) {
+    console.error('Google Translate API error:', error);
+    return text; // Return original text if translation fails
+  }
+}
+
 // WooCommerce Product Interface
 export interface WooCommerceProduct {
   id: number;
@@ -229,6 +252,7 @@ export class WooCommerceSync {
     category?: string;
     tag?: string;
     search?: string;
+    lang?: string;
   }): Promise<WooCommerceProduct[]> {
     const cacheKey = `wc_products:${JSON.stringify(params || {})}`;
     
@@ -310,6 +334,33 @@ export class WooCommerceSync {
           status: 'success',
           retryCount: attempts,
         });
+
+        // Apply translations if language is specified
+        if (params?.lang && params.lang !== 'en') {
+          console.log(`[WooCommerce Sync] Applying translations for language: ${params.lang}`);
+          
+          // Translate product names and descriptions
+          const translatedProducts = await Promise.all(
+            scaledProducts.map(async (product) => {
+              // Check for WPML translations first
+              const wpmlName = product.meta_data?.find(m => m.key === `_${params.lang}_name`)?.value;
+              const wpmlDescription = product.meta_data?.find(m => m.key === `_${params.lang}_description`)?.value;
+              
+              // Use WPML translation or fallback to Google Translate
+              const translatedName = wpmlName || await translateText(product.name, params.lang);
+              const translatedDescription = wpmlDescription || await translateText(product.description, params.lang);
+              
+              return {
+                ...product,
+                name: translatedName,
+                description: translatedDescription,
+              };
+            })
+          );
+          
+          console.log(`[WooCommerce Sync] Applied translations for ${translatedProducts.length} products`);
+          return translatedProducts;
+        }
 
         console.log(`[WooCommerce Sync] Successfully fetched ${scaledProducts.length} products`);
         return scaledProducts;
