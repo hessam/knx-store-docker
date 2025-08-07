@@ -31,10 +31,5 @@ export default defineConfig({
   },
 
   // SEO and Performance
-  site: 'https://knx-store.vercel.app',
-  
-  // Performance optimizations
-  experimental: {
-    optimizeHoistedScript: true
-  }
+  site: 'https://knx-store.vercel.app'
 }); 
