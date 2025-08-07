@@ -300,8 +300,8 @@ export class WooCommerceSync {
           console.log(`[WooCommerce Sync] Scaled to ${scaledProducts.length} products for performance testing`);
         }
         
-        // Cache the result for 5 minutes
-        await this.setCached(cacheKey, scaledProducts, 300);
+        // Cache the result for 1 hour (3600 seconds) for better performance
+        await this.setCached(cacheKey, scaledProducts, 3600);
         
         // Update sync status
         await this.updateSyncStatus({
