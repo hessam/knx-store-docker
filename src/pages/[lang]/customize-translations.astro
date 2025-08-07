@@ -2,6 +2,15 @@
 import Layout from '../../layouts/Layout.astro';
 import { loadTranslations, isValidLanguage } from '../../lib/i18n';
 
+// Define static paths for all supported languages
+export async function getStaticPaths() {
+  return [
+    { params: { lang: 'en' } },
+    { params: { lang: 'de' } },
+    { params: { lang: 'ar' } }
+  ];
+}
+
 const { lang } = Astro.params;
 
 // Validate language
