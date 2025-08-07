@@ -1,4 +1,4 @@
-import type { APIRoute } from 'astro';
+
 import fs from 'fs';
 import path from 'path';
 

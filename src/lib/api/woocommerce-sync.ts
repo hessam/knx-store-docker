@@ -336,19 +336,19 @@ export class WooCommerceSync {
         });
 
         // Apply translations if language is specified
-        if (params?.lang && params.lang !== 'en') {
-          console.log(`[WooCommerce Sync] Applying translations for language: ${params.lang}`);
+        if (params?.lang && params.lang! !== 'en') {
+          console.log(`[WooCommerce Sync] Applying translations for language: ${params.lang!}`);
           
           // Translate product names and descriptions
           const translatedProducts = await Promise.all(
             scaledProducts.map(async (product) => {
               // Check for WPML translations first
-              const wpmlName = product.meta_data?.find(m => m.key === `_${params.lang}_name`)?.value;
-              const wpmlDescription = product.meta_data?.find(m => m.key === `_${params.lang}_description`)?.value;
+              const wpmlName = product.meta_data?.find(m => m.key === `_${params.lang!}_name`)?.value;
+              const wpmlDescription = product.meta_data?.find(m => m.key === `_${params.lang!}_description`)?.value;
               
               // Use WPML translation or fallback to Google Translate
-              const translatedName = wpmlName || await translateText(product.name, params.lang);
-              const translatedDescription = wpmlDescription || await translateText(product.description, params.lang);
+              const translatedName = wpmlName || await translateText(product.name, params.lang!!);
+              const translatedDescription = wpmlDescription || await translateText(product.description, params.lang!!);
               
               return {
                 ...product,
