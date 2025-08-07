@@ -208,7 +208,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
             });
             
             // Update URL without page reload
-            const url = new URL(window.location);
+            const url = new URL(window.location.href);
             url.searchParams.set('page', currentPage.toString());
             window.history.pushState({}, '', url);
             

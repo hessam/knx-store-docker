@@ -1,5 +1,3 @@
-import { getWooCommerceSync } from '../../lib/api/woocommerce-sync';
-
 export async function GET({ request }) {
   const url = new URL(request.url);
   const page = parseInt(url.searchParams.get('page') || '1');
