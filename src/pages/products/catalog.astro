@@ -1,0 +1,159 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getWooCommerceSync } from '../../lib/api/woocommerce-sync';
+
+// Get pagination parameters
+const url = new URL(Astro.request.url);
+const page = parseInt(url.searchParams.get('page') || '1');
+const perPage = parseInt(url.searchParams.get('per_page') || '20');
+const search = url.searchParams.get('search') || '';
+
+// Fetch products with pagination
+let products: any[] = [];
+let error: string | null = null;
+let totalProducts = 0;
+
+try {
+  const wooCommerceSync = getWooCommerceSync();
+  products = await wooCommerceSync.fetchProducts({ per_page: 1000 });
+  totalProducts = products.length;
+} catch (err) {
+  error = err instanceof Error ? err.message : 'Unknown error occurred';
+}
+
+// Calculate pagination
+const totalPages = Math.ceil(totalProducts / perPage);
+const startIndex = (page - 1) * perPage;
+const endIndex = startIndex + perPage;
+const paginatedProducts = products.slice(startIndex, endIndex);
+---
+
+<Layout title="High-Performance Product Catalog - KNX Store">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">High-Performance Product Catalog</h1>
+    
+    <!-- Performance Metrics -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h3 class="text-blue-800 font-semibold mb-2">Performance Metrics</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+        <div><span class="font-medium">Total Products:</span> {totalProducts}</div>
+        <div><span class="font-medium">Page Size:</span> {perPage}</div>
+        <div><span class="font-medium">Current Page:</span> {page}</div>
+        <div><span class="font-medium">Total Pages:</span> {totalPages}</div>
+      </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+      <form method="GET" class="flex gap-4">
+        <input 
+          type="text" 
+          name="search" 
+          value={search}
+          placeholder="Search products..."
+          class="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+        />
+        <select name="per_page" class="px-3 py-2 border border-gray-300 rounded-md">
+          <option value="12" selected={perPage === 12}>12 per page</option>
+          <option value="20" selected={perPage === 20}>20 per page</option>
+          <option value="50" selected={perPage === 50}>50 per page</option>
+          <option value="100" selected={perPage === 100}>100 per page</option>
+        </select>
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+          Filter
+        </button>
+      </form>
+    </div>
+
+    <!-- Products Grid -->
+    {error ? (
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p class="text-red-600">{error}</p>
+      </div>
+    ) : (
+      <>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {paginatedProducts.map((product) => (
+            <ProductCard 
+              product={{
+                id: product.id,
+                name: product.name,
+                description: product.description,
+                price: product.price,
+                regular_price: product.regular_price,
+                sale_price: product.sale_price,
+                images: product.images || [],
+                permalink: product.permalink,
+                slug: product.slug
+              }}
+              loading={false}
+            />
+          ))}
+        </div>
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="mt-12 flex justify-center">
+            <nav class="flex items-center space-x-2">
+              {page > 1 && (
+                <a href={`?page=${page - 1}&per_page=${perPage}&search=${search}`} 
+                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                  Previous
+                </a>
+              )}
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                return (
+                  <a href={`?page=${pageNum}&per_page=${perPage}&search=${search}`}
+                     class={`px-3 py-2 text-sm font-medium rounded-md ${
+                       pageNum === page
+                         ? 'bg-blue-600 text-white'
+                         : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                     }`}>
+                    {pageNum}
+                  </a>
+                );
+              })}
+              
+              {page < totalPages && (
+                <a href={`?page=${page + 1}&per_page=${perPage}&search=${search}`}
+                   class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                  Next
+                </a>
+              )}
+            </nav>
+          </div>
+        )}
+      </>
+    )}
+
+    <!-- Client-side Instant Filtering -->
+    <script>
+      // Client-side instant filtering for better UX
+      const searchInput = document.querySelector('input[name="search"]');
+      const productGrid = document.querySelector('.grid');
+      
+      if (searchInput && productGrid) {
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', (e) => {
+          clearTimeout(searchTimeout);
+          const searchTerm = e.target.value.toLowerCase();
+          
+          // Debounce search for better performance
+          searchTimeout = setTimeout(() => {
+            const productCards = productGrid.querySelectorAll('[data-product-name]');
+            
+            productCards.forEach((card) => {
+              const productName = card.dataset.productName?.toLowerCase() || '';
+              const isVisible = productName.includes(searchTerm);
+              card.style.display = isVisible ? 'block' : 'none';
+            });
+          }, 300);
+        });
+      }
+    </script>
+  </main>
+</Layout> 
