@@ -1,0 +1,30 @@
+---
+// Debug API endpoint for Redis connection
+export async function GET() {
+  const hasUrl = !!process.env.UPSTASH_REDIS_REST_URL;
+  const hasToken = !!process.env.UPSTASH_REDIS_REST_TOKEN;
+  const hasWooCommerceUrl = !!process.env.WOOCOMMERCE_API_URL;
+  const hasWooCommerceKey = !!process.env.WOOCOMMERCE_CONSUMER_KEY;
+  
+  const debugInfo = {
+    environment: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV,
+    hasRedisUrl: hasUrl,
+    hasRedisToken: hasToken,
+    hasWooCommerceUrl: hasWooCommerceUrl,
+    hasWooCommerceKey: hasWooCommerceKey,
+    urlLength: process.env.UPSTASH_REDIS_REST_URL?.length || 0,
+    tokenLength: process.env.UPSTASH_REDIS_REST_TOKEN?.length || 0,
+    redisUrl: process.env.UPSTASH_REDIS_REST_URL ? 'SET' : 'NOT SET',
+    redisToken: process.env.UPSTASH_REDIS_REST_TOKEN ? 'SET' : 'NOT SET',
+    timestamp: new Date().toISOString()
+  };
+
+  return new Response(JSON.stringify(debugInfo, null, 2), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+--- 
