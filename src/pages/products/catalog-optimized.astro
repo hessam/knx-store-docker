@@ -15,13 +15,35 @@ const search = url.searchParams.get('search') || '';
 // Performance optimization: Load only initial products for fast first paint
 let initialProducts: any[] = [];
 let error: string | null = null;
-let totalProducts = 0;
+let totalProducts = 1000; // Simulate 1000+ products
 
 try {
   const wooCommerceSync = getWooCommerceSync();
   // Load only first 20 products for instant display
   initialProducts = await wooCommerceSync.fetchProducts({ per_page: 20 });
-  totalProducts = initialProducts.length;
+  
+  // Simulate 1000+ products for testing infinite scroll
+  if (initialProducts.length > 0) {
+    const baseProducts = initialProducts;
+    const simulatedProducts = [];
+    
+    // Create 1000+ products by duplicating and modifying the base products
+    for (let i = 0; i < 50; i++) { // 50 pages × 20 products = 1000 products
+      const duplicatedProducts = baseProducts.map((product: any, index: number) => ({
+        ...product,
+        id: product.id + (i * baseProducts.length) + index,
+        name: `${product.name} ${i + 1}`,
+        slug: `${product.slug}-${i + 1}`,
+        permalink: `${product.permalink}${i + 1}/`,
+        price: (parseFloat(product.price) + (i * 10)).toFixed(2),
+        regular_price: (parseFloat(product.regular_price) + (i * 10)).toFixed(2),
+      }));
+      simulatedProducts.push(...duplicatedProducts);
+    }
+    
+    initialProducts = simulatedProducts;
+    totalProducts = simulatedProducts.length;
+  }
 } catch (err) {
   error = err instanceof Error ? err.message : 'Unknown error occurred';
 }
@@ -107,37 +129,10 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
           </div>
         </div>
         
-        <!-- Pagination Controls -->
-        <div class="mt-12 flex justify-center">
-          <nav class="flex items-center space-x-2">
-            {page > 1 && (
-              <a href={`?page=${page - 1}&per_page=${perPage}&search=${search}`} 
-                 class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                Previous
-              </a>
-            )}
-            
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
-              return (
-                <a href={`?page=${pageNum}&per_page=${perPage}&search=${search}`}
-                   class={`px-3 py-2 text-sm font-medium rounded-md ${
-                     pageNum === page
-                       ? 'bg-blue-600 text-white'
-                       : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                   }`}>
-                  {pageNum}
-                </a>
-              );
-            })}
-            
-            {page < totalPages && (
-              <a href={`?page=${page + 1}&per_page=${perPage}&search=${search}`}
-                 class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                Next
-              </a>
-            )}
-          </nav>
+        <!-- Infinite Scroll Status -->
+        <div class="mt-8 text-center text-gray-600">
+          <p>Showing {paginatedProducts.length} of {totalProducts} products</p>
+          <p class="text-sm">Scroll down to load more products automatically</p>
         </div>
       </>
     )}
@@ -161,6 +156,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
       let isLoading = false;
       let currentPage = 1;
       const pageSize = 20; // Default page size for progressive loading
+      const totalProducts = 1000; // Simulated total products
       
       // Client-side instant filtering with debouncing
       const searchInput = document.querySelector('input[name="search"]');
@@ -197,8 +193,12 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
         
         try {
           currentPage++;
-          const response = await fetch(`/api/products?page=${currentPage}&per_page=${pageSize}`);
-          const newProducts = await response.json();
+          
+          // Simulate API call delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Generate simulated products for the next page
+          const newProducts = generateSimulatedProducts(currentPage, pageSize);
           
           if (newProducts.length > 0) {
             // Add new products to the grid
@@ -206,6 +206,13 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
               const productCard = createProductCard(product);
               productGrid?.appendChild(productCard);
             });
+            
+            // Update URL without page reload
+            const url = new URL(window.location);
+            url.searchParams.set('page', currentPage.toString());
+            window.history.pushState({}, '', url);
+            
+            console.log(`Loaded page ${currentPage} with ${newProducts.length} products`);
           }
         } catch (error) {
           console.error('Error loading more products:', error);
@@ -215,10 +222,42 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
         }
       }
       
+      // Generate simulated products for infinite scroll
+      function generateSimulatedProducts(page: number, pageSize: number) {
+        const products = [];
+        const startIndex = (page - 1) * pageSize;
+        
+        for (let i = 0; i < pageSize; i++) {
+          const productIndex = startIndex + i;
+          if (productIndex >= totalProducts) break;
+          
+          const baseProduct = {
+            id: productIndex + 1,
+            name: `KNX Smart Product ${productIndex + 1}`,
+            description: `High-performance KNX smart building solution ${productIndex + 1}`,
+            price: (99.99 + (productIndex * 10)).toFixed(2),
+            regular_price: (99.99 + (productIndex * 10)).toFixed(2),
+            sale_price: '',
+            permalink: `https://mohtavaly.com/product/knx-smart-product-${productIndex + 1}/`,
+            slug: `knx-smart-product-${productIndex + 1}`,
+            images: [{
+              id: productIndex + 1,
+              src: `https://picsum.photos/300/300?random=${productIndex + 1}`,
+              name: `Product ${productIndex + 1}`,
+              alt: `KNX Smart Product ${productIndex + 1}`
+            }]
+          };
+          
+          products.push(baseProduct);
+        }
+        
+        return products;
+      }
+      
       // Create product card element
       function createProductCard(product: any) {
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-lg shadow-md overflow-hidden';
+        card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1';
         card.setAttribute('data-product-name', product.name);
         
         card.innerHTML = `
@@ -236,7 +275,7 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
             <h3 class="text-lg font-semibold text-gray-900 mb-2">${product.name}</h3>
             <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || ''}</p>
             <div class="flex justify-between items-center">
-              <span class="text-xl font-bold text-gray-900">${product.price || 'N/A'}</span>
+              <span class="text-xl font-bold text-gray-900">$${product.price || 'N/A'}</span>
               <a href="${product.permalink}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
                 View Details
               </a>
@@ -261,6 +300,16 @@ const paginatedProducts = initialProducts.slice(startIndex, endIndex);
       if (loadingIndicator) {
         observer.observe(loadingIndicator);
       }
+      
+      // Show loading indicator when user scrolls near bottom
+      window.addEventListener('scroll', () => {
+        const scrollPosition = window.scrollY + window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        if (scrollPosition >= documentHeight - 200 && !isLoading && loadingIndicator) {
+          loadingIndicator.classList.remove('hidden');
+        }
+      });
     </script>
   </main>
 </Layout> 
