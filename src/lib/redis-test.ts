@@ -85,7 +85,16 @@ export async function testWooCommerceCache() {
     
     // Retrieve cache
     const cachedData = await redis.get(cacheKey);
-    const parsedData = cachedData ? JSON.parse(cachedData as string) : null;
+    let parsedData = null;
+    
+    if (cachedData) {
+      try {
+        parsedData = typeof cachedData === 'string' ? JSON.parse(cachedData) : cachedData;
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        parsedData = cachedData; // Use raw data if parsing fails
+      }
+    }
     
     console.log('✅ WooCommerce cache test successful');
     console.log('- Cache key:', cacheKey);
