@@ -239,7 +239,7 @@ const title = `${t.checkout} - KNX Store`;
         }
 
       } catch (error) {
-        showError(error.message);
+        showError((error as Error).message);
       } finally {
         setLoading(false);
       }
