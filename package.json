@@ -42,7 +42,7 @@
     "test:accessibility": "playwright test tests/accessibility.spec.ts",
     "test:accessibility:ci": "playwright test tests/accessibility.spec.ts --reporter=list",
     "bundle-size": "size-limit",
-    "bundle-size:ci": "size-limit --why",
+    "bundle-size:ci": "size-limit",
     "quality-gates": "npm run test:accessibility && npm run bundle-size",
     "prepare": "husky install"
   },
