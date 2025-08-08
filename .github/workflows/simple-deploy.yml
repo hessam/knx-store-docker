@@ -13,6 +13,8 @@ jobs:
   test-and-build:
     name: Test and Build
     runs-on: ubuntu-latest
+    env:
+      SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
     
     steps:
       - name: Checkout code
@@ -77,3 +79,27 @@ jobs:
           echo ""
           echo "🔗 Vercel Dashboard: https://vercel.com/dashboard"
           echo "🌐 Your site should be available at your Vercel URL"
+
+      - name: Notify Slack on Success
+        if: success() && env.SLACK_CHANNEL_ID != ''
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ env.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "✅ Build & Test Success\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Actor:* ${{ github.actor }}\n\n🔗 Actions Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify Slack on Failure
+        if: failure() && env.SLACK_CHANNEL_ID != ''
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ env.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "❌ Build & Test Failed\n*Repo:* ${{ github.repository }}\n*Branch:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n*Actor:* ${{ github.actor }}\n\n🔍 Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

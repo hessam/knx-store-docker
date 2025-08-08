@@ -1,0 +1,20 @@
+name: Send Slack Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack test message
+        if: ${{ secrets.SLACK_BOT_TOKEN != '' && secrets.SLACK_CHANNEL_ID != '' }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "🔔 Slack integration test from GitHub Actions.\n*Repo:* ${{ github.repository }}\n*Actor:* ${{ github.actor }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
