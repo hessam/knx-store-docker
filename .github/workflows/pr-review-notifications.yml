@@ -15,11 +15,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get Changed Files
         id: changed-files
         uses: tj-actions/changed-files@v42
         with:
+          since_last_remote_commit: true
           files: |
             **/*.ts
             **/*.tsx
@@ -127,16 +130,17 @@ jobs:
               console.log(`Assigned reviewers: ${reviewers.join(', ')}`);
             }
 
-                        - name: Notify Slack - PR Ready for Review
-                    uses: slackapi/slack-github-action@v1.24.0
-                    with:
-                      channel-id: 'C0997KHM5JQ'
-                      payload: |
-                        {
-                          "text": "🔍 **New PR Ready for Review**\n\n*Repository:* ${{ github.repository }}\n*PR:* #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}\n*Author:* ${{ github.event.pull_request.user.login }}\n*Branch:* ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}\n\n📋 **Reviewers Assigned:**\n• Senior: ${{ steps.reviewers.outputs.senior_reviewers }}\n• Junior: ${{ steps.reviewers.outputs.junior_reviewers }}\n\n🎯 **Review Targets:**\n• Review time: <2 hours\n• Merge time: <24 hours\n• Required approvals: 2\n\n🔗 **Links:**\n• PR: ${{ github.event.pull_request.html_url }}\n• Files changed: ${{ github.event.pull_request.changed_files }} files\n• Additions: +${{ github.event.pull_request.additions }}\n• Deletions: -${{ github.event.pull_request.deletions }}\n\n⏰ **Reminder:** Please review within 2 hours to maintain our target review time!"
-                        }
-                    env:
-                      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      - name: Notify Slack - PR Ready for Review
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: 'C0997KHM5JQ'
+          payload: |
+            {
+              "text": "🔍 **New PR Ready for Review**\n\n*Repository:* ${{ github.repository }}\n*PR:* #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}\n*Author:* ${{ github.event.pull_request.user.login }}\n*Branch:* ${{ github.event.pull_request.head.ref }} → ${{ github.event.pull_request.base.ref }}\n\n📋 **Reviewers Assigned:**\n• Senior: ${{ steps.reviewers.outputs.senior_reviewers }}\n• Junior: ${{ steps.reviewers.outputs.junior_reviewers }}\n\n🎯 **Review Targets:**\n• Review time: <2 hours\n• Merge time: <24 hours\n• Required approvals: 2\n\n🔗 **Links:**\n• PR: ${{ github.event.pull_request.html_url }}\n• Files changed: ${{ github.event.pull_request.changed_files }} files\n• Additions: +${{ github.event.pull_request.additions }}\n• Deletions: -${{ github.event.pull_request.deletions }}\n\n⏰ **Reminder:** Please review within 2 hours to maintain our target review time!"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Add PR Labels
         uses: actions/github-script@v7
