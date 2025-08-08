@@ -71,6 +71,10 @@ const currentLang = langMatch ? langMatch[1] : 'en';
             <a href={currentLang === 'en' ? '/' : `/${currentLang}/`} class="text-gray-600 hover:text-gray-900">Home</a>
             <a href={currentLang === 'en' ? '/products/test' : `/${currentLang}/products/catalog-optimized`} class="text-gray-600 hover:text-gray-900">Products</a>
             <a href={currentLang === 'en' ? '/contact' : `/${currentLang}/contact`} class="text-gray-600 hover:text-gray-900">Contact</a>
+            <a href={currentLang === 'en' ? '/checkout' : `/${currentLang}/checkout`} class="text-gray-600 hover:text-gray-900">Checkout</a>
+            <a href={currentLang === 'en' ? '/login' : `/${currentLang}/login`} class="text-gray-600 hover:text-gray-900" id="login-link">Login</a>
+            <a href={currentLang === 'en' ? '/account' : `/${currentLang}/account`} class="text-gray-600 hover:text-gray-900 hidden" id="account-link">Account</a>
+            <button id="logout-btn" class="text-gray-600 hover:text-gray-900 hidden">Logout</button>
           </nav>
           <LanguageSwitcher />
         </div>
@@ -136,3 +140,41 @@ const currentLang = langMatch ? langMatch[1] : 'en';
     overflow: hidden;
   }
 </style> 
+    <script>
+      // Check authentication status and update navigation
+      async function checkAuthStatus() {
+        try {
+          const response = await fetch('/api/login');
+          const result = await response.json();
+          
+          const loginLink = document.getElementById('login-link');
+          const accountLink = document.getElementById('account-link');
+          const logoutBtn = document.getElementById('logout-btn');
+          
+          if (result.authenticated) {
+            loginLink.classList.add('hidden');
+            accountLink.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
+          } else {
+            loginLink.classList.remove('hidden');
+            accountLink.classList.add('hidden');
+            logoutBtn.classList.add('hidden');
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+        }
+      }
+
+      // Handle logout
+      document.getElementById('logout-btn')?.addEventListener('click', async () => {
+        try {
+          await fetch('/api/logout', { method: 'POST' });
+          window.location.reload();
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      });
+
+      // Check auth status on page load
+      checkAuthStatus();
+    </script>

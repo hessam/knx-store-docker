@@ -1,0 +1,125 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { loadTranslations, isValidLanguage } from '../../lib/i18n';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  return [
+    { params: { lang: 'en' } },
+    { params: { lang: 'de' } },
+    { params: { lang: 'ar' } }
+  ];
+}
+
+const { lang } = Astro.params;
+
+if (!lang || !isValidLanguage(lang)) {
+  return Astro.redirect('/en/account');
+}
+
+const t = loadTranslations(lang);
+const title = `${t.account} - KNX Store`;
+---
+
+<Layout title={title}>
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">{t.account}</h1>
+      <button id="logout-btn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+        {t.logout}
+      </button>
+    </div>
+    
+    <div id="loading" class="text-center py-8">
+      <div class="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+      <p class="mt-2 text-gray-600">Loading account information...</p>
+    </div>
+
+    <div id="account-content" class="hidden">
+      <div class="bg-white shadow-lg rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Account Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Name</label>
+            <p id="user-name" class="text-gray-900 font-medium"></p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <p id="user-email" class="text-gray-900 font-medium"></p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Role</label>
+            <p id="user-role" class="text-gray-900 font-medium"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white shadow-lg rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a href="/[lang]/checkout" class="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            <h3 class="font-semibold text-gray-900">Test Payment</h3>
+            <p class="text-gray-600 text-sm">Try the multi-currency payment system</p>
+          </a>
+          <a href="/[lang]/products/catalog-optimized" class="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            <h3 class="font-semibold text-gray-900">Browse Products</h3>
+            <p class="text-gray-600 text-sm">View the high-performance catalog</p>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="login-required" class="hidden text-center py-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Authentication Required</h2>
+      <p class="text-gray-600 mb-4">Please log in to access your account.</p>
+      <a href="/[lang]/login" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+        {t.login}
+      </a>
+    </div>
+  </main>
+
+  <script>
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/login');
+        const result = await response.json();
+
+        if (result.authenticated) {
+          showAccountContent(result.user);
+        } else {
+          showLoginRequired();
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        showLoginRequired();
+      }
+    }
+
+    function showAccountContent(user) {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('account-content').classList.remove('hidden');
+      
+      document.getElementById('user-name').textContent = user.name;
+      document.getElementById('user-email').textContent = user.email;
+      document.getElementById('user-role').textContent = user.role;
+    }
+
+    function showLoginRequired() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('login-required').classList.remove('hidden');
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/[lang]/login';
+      } catch (error) {
+        console.error('Logout failed:', error);
+      }
+    });
+
+    // Check authentication on page load
+    checkAuth();
+  </script>
+</Layout>
