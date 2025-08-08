@@ -31,5 +31,5 @@ export default defineConfig({
   },
 
   // SEO and Performance
-  site: 'https://knx-store.vercel.app'
+  site: 'https://knx-store-docker.vercel.app'
 }); 
