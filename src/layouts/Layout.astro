@@ -152,13 +152,13 @@ const currentLang = langMatch ? langMatch[1] : 'en';
           const logoutBtn = document.getElementById('logout-btn');
           
           if (result.authenticated) {
-            loginLink.classList.add('hidden');
-            accountLink.classList.remove('hidden');
-            logoutBtn.classList.remove('hidden');
+            loginLink?.classList.add('hidden');
+            accountLink?.classList.remove('hidden');
+            logoutBtn?.classList.remove('hidden');
           } else {
-            loginLink.classList.remove('hidden');
-            accountLink.classList.add('hidden');
-            logoutBtn.classList.add('hidden');
+            loginLink?.classList.remove('hidden');
+            accountLink?.classList.add('hidden');
+            logoutBtn?.classList.add('hidden');
           }
         } catch (error) {
           console.error('Auth check failed:', error);

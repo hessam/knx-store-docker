@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
-import { users, generateToken, AuthenticatedUser } from '../../middleware/auth';
+import { users, generateToken } from '../../middleware/auth';
+import type { AuthenticatedUser } from '../../middleware/auth';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {

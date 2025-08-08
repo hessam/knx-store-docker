@@ -99,7 +99,7 @@ const title = 'Authentication & Payment Test - KNX Store';
 
   <script>
     // Test authentication
-    document.getElementById('test-auth').addEventListener('click', async () => {
+    document.getElementById('test-auth')?.addEventListener('click', async () => {
       const result = document.getElementById('auth-result');
       const message = document.getElementById('auth-message');
       
@@ -108,22 +108,22 @@ const title = 'Authentication & Payment Test - KNX Store';
         const data = await response.json();
         
         if (response.ok) {
-          result.className = 'bg-green-100 text-green-700 p-3 rounded-md';
-          message.textContent = `Success! User: ${data.user.name} (${data.user.email})`;
+          result!.className = 'bg-green-100 text-green-700 p-3 rounded-md';
+          message!.textContent = `Success! User: ${data.user.name} (${data.user.email})`;
         } else {
-          result.className = 'bg-red-100 text-red-700 p-3 rounded-md';
-          message.textContent = 'Authentication required. Please log in first.';
+          result!.className = 'bg-red-100 text-red-700 p-3 rounded-md';
+          message!.textContent = 'Authentication required. Please log in first.';
         }
-      } catch (error) {
-        result.className = 'bg-red-100 text-red-700 p-3 rounded-md';
-        message.textContent = 'Error: ' + error.message;
+      } catch (error: any) {
+        result!.className = 'bg-red-100 text-red-700 p-3 rounded-md';
+        message!.textContent = 'Error: ' + error.message;
       }
       
-      result.classList.remove('hidden');
+      result!.classList.remove('hidden');
     });
 
     // Test payment
-    document.getElementById('test-payment').addEventListener('click', async () => {
+    document.getElementById('test-payment')?.addEventListener('click', async () => {
       const result = document.getElementById('payment-result');
       const message = document.getElementById('payment-message');
       
@@ -142,18 +142,18 @@ const title = 'Authentication & Payment Test - KNX Store';
         const data = await response.json();
         
         if (response.ok) {
-          result.className = 'bg-green-100 text-green-700 p-3 rounded-md';
-          message.textContent = 'Payment intent created successfully!';
+          result!.className = 'bg-green-100 text-green-700 p-3 rounded-md';
+          message!.textContent = 'Payment intent created successfully!';
         } else {
-          result.className = 'bg-red-100 text-red-700 p-3 rounded-md';
-          message.textContent = 'Payment failed: ' + (data.error || 'Unknown error');
+          result!.className = 'bg-red-100 text-red-700 p-3 rounded-md';
+          message!.textContent = 'Payment failed: ' + (data.error || 'Unknown error');
         }
-      } catch (error) {
-        result.className = 'bg-red-100 text-red-700 p-3 rounded-md';
-        message.textContent = 'Error: ' + error.message;
+      } catch (error: any) {
+        result!.className = 'bg-red-100 text-red-700 p-3 rounded-md';
+        message!.textContent = 'Error: ' + error.message;
       }
       
-      result.classList.remove('hidden');
+      result!.classList.remove('hidden');
     });
 
     // Check system status
@@ -191,15 +191,15 @@ const title = 'Authentication & Payment Test - KNX Store';
       }
       
       // Update status indicators
-      authStatus.textContent = authWorking ? '✅' : '❌';
-      authStatus.className = authWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+      authStatus!.textContent = authWorking ? '✅' : '❌';
+      authStatus!.className = authWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
       
-      paymentStatus.textContent = paymentWorking ? '✅' : '❌';
-      paymentStatus.className = paymentWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+      paymentStatus!.textContent = paymentWorking ? '✅' : '❌';
+      paymentStatus!.className = paymentWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
       
       const overallWorking = authWorking && paymentWorking;
-      overallStatus.textContent = overallWorking ? '✅' : '❌';
-      overallStatus.className = overallWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+      overallStatus!.textContent = overallWorking ? '✅' : '❌';
+      overallStatus!.className = overallWorking ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
     }
     
     // Check status on page load

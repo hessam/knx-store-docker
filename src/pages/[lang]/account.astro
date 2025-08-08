@@ -96,21 +96,21 @@ const title = `${t.account} - KNX Store`;
       }
     }
 
-    function showAccountContent(user) {
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('account-content').classList.remove('hidden');
+    function showAccountContent(user: any) {
+      document.getElementById('loading')!.classList.add('hidden');
+      document.getElementById('account-content')!.classList.remove('hidden');
       
-      document.getElementById('user-name').textContent = user.name;
-      document.getElementById('user-email').textContent = user.email;
-      document.getElementById('user-role').textContent = user.role;
+      document.getElementById('user-name')!.textContent = user.name;
+      document.getElementById('user-email')!.textContent = user.email;
+      document.getElementById('user-role')!.textContent = user.role;
     }
 
     function showLoginRequired() {
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('login-required').classList.remove('hidden');
+      document.getElementById('loading')!.classList.add('hidden');
+      document.getElementById('login-required')!.classList.remove('hidden');
     }
 
-    document.getElementById('logout-btn').addEventListener('click', async () => {
+    document.getElementById('logout-btn')?.addEventListener('click', async () => {
       try {
         await fetch('/api/logout', { method: 'POST' });
         window.location.href = '/[lang]/login';
