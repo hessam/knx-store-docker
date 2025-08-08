@@ -1,5 +1,6 @@
 ---
 import LanguageSwitcher from '../components/LanguageSwitcher.astro';
+import { getHomeUrl, getProductUrl, getContactUrl, getCheckoutUrl, getLoginUrl, getAccountUrl } from '../lib/urls';
 
 export interface Props {
   title: string;
@@ -63,17 +64,17 @@ const currentLang = langMatch ? langMatch[1] : 'en';
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-4">
           <div class="flex items-center">
-            <a href="/" class="text-xl font-bold text-gray-900">
+            <a href={getHomeUrl(currentLang)} class="text-xl font-bold text-gray-900">
               KNX Store
             </a>
           </div>
           <nav class="hidden md:flex space-x-8">
-            <a href={currentLang === 'en' ? '/' : `/${currentLang}/`} class="text-gray-600 hover:text-gray-900">Home</a>
-            <a href={currentLang === 'en' ? '/products/test' : `/${currentLang}/products/catalog-optimized`} class="text-gray-600 hover:text-gray-900">Products</a>
-            <a href={currentLang === 'en' ? '/contact' : `/${currentLang}/contact`} class="text-gray-600 hover:text-gray-900">Contact</a>
-            <a href={currentLang === 'en' ? '/checkout' : `/${currentLang}/checkout`} class="text-gray-600 hover:text-gray-900">Checkout</a>
-            <a href={currentLang === 'en' ? '/login' : `/${currentLang}/login`} class="text-gray-600 hover:text-gray-900" id="login-link">Login</a>
-            <a href={currentLang === 'en' ? '/account' : `/${currentLang}/account`} class="text-gray-600 hover:text-gray-900 hidden" id="account-link">Account</a>
+            <a href={getHomeUrl(currentLang)} class="text-gray-600 hover:text-gray-900">Home</a>
+            <a href={getProductUrl(currentLang)} class="text-gray-600 hover:text-gray-900">Products</a>
+            <a href={getContactUrl(currentLang)} class="text-gray-600 hover:text-gray-900">Contact</a>
+            <a href={getCheckoutUrl(currentLang)} class="text-gray-600 hover:text-gray-900">Checkout</a>
+            <a href={getLoginUrl(currentLang)} class="text-gray-600 hover:text-gray-900" id="login-link">Login</a>
+            <a href={getAccountUrl(currentLang)} class="text-gray-600 hover:text-gray-900 hidden" id="account-link">Account</a>
             <button id="logout-btn" class="text-gray-600 hover:text-gray-900 hidden">Logout</button>
           </nav>
           <LanguageSwitcher />
@@ -99,9 +100,9 @@ const currentLang = langMatch ? langMatch[1] : 'en';
           <div>
             <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
             <ul class="space-y-2">
-              <li><a href="/" class="text-gray-300 hover:text-white">Home</a></li>
-              <li><a href="/products/test" class="text-gray-300 hover:text-white">Products</a></li>
-              <li><a href="/contact" class="text-gray-300 hover:text-white">Contact</a></li>
+              <li><a href={getHomeUrl(currentLang)} class="text-gray-300 hover:text-white">Home</a></li>
+              <li><a href={getProductUrl(currentLang)} class="text-gray-300 hover:text-white">Products</a></li>
+              <li><a href={getContactUrl(currentLang)} class="text-gray-300 hover:text-white">Contact</a></li>
             </ul>
           </div>
           <div>

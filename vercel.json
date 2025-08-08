@@ -5,5 +5,17 @@
   "outputDirectory": "dist",
   "installCommand": "npm install --legacy-peer-deps",
   "devCommand": "npm run dev",
-  "framework": "astro"
-} 
+  "framework": "astro",
+  "redirects": [
+    {
+      "source": "/products/test",
+      "destination": "/en/products/catalog-optimized",
+      "permanent": true
+    },
+    {
+      "source": "/products/catalog",
+      "destination": "/en/products/catalog-optimized",
+      "permanent": true
+    }
+  ]
+}
