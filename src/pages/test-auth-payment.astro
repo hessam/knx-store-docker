@@ -128,12 +128,12 @@ const title = 'Authentication & Payment Test - KNX Store';
       const message = document.getElementById('payment-message');
       
       try {
-        const response = await fetch('/api/payment', {
+        const response = await fetch('/api/payments/create-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: 10.00,
-            currency: 'usd',
+            amount: 1000,
+            currency: 'USD',
             customerEmail: 'test@example.com',
             productId: 'test-product'
           })
@@ -167,7 +167,7 @@ const title = 'Authentication & Payment Test - KNX Store';
       
       // Test auth
       try {
-        const authResponse = await fetch('/api/login');
+        const authResponse = await fetch('/api/auth/me');
         authWorking = authResponse.ok;
       } catch (error) {
         console.error('Auth test failed:', error);
@@ -175,12 +175,12 @@ const title = 'Authentication & Payment Test - KNX Store';
       
       // Test payment
       try {
-        const paymentResponse = await fetch('/api/payment', {
+        const paymentResponse = await fetch('/api/payments/create-intent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: 1.00,
-            currency: 'usd',
+            amount: 100,
+            currency: 'USD',
             customerEmail: 'test@example.com',
             productId: 'test-product'
           })
