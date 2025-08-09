@@ -1,15 +1,14 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import vercel from '@astrojs/vercel/serverless';
 
 export default defineConfig({
-  output: 'server',
-  adapter: vercel(),
-  
+  output: 'static',
+  adapter: undefined,
+
   integrations: [
     tailwind()
   ],
-  
+
   vite: {
     define: {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
@@ -33,4 +32,4 @@ export default defineConfig({
 
   // SEO and Performance
   site: 'https://knx-store-docker.vercel.app'
-}); 
+});
