@@ -222,17 +222,6 @@ const title = `${t.checkout} - KNX Store`;
             billing_details: { email: customerEmail },
           },
         });
-          elements,
-          confirmParams: {
-            return_url: `${window.location.origin}/${window.location.pathname.split('/')[1]}/checkout`,
-            payment_method_data: {
-              billing_details: {
-                email: customerEmail,
-              },
-            },
-          },
-          redirect: 'if_required',
-        });
 
         if (error) {
           throw new Error(error.message);
