@@ -113,7 +113,8 @@ const title = `${t.account} - KNX Store`;
     document.getElementById('logout-btn')?.addEventListener('click', async () => {
       try {
         await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = `/${'" + lang + "'}/login`;
+        const currentLang = (window.location.pathname.split('/')[1] || 'en');
+        window.location.href = `/${currentLang}/login`;
       } catch (error) {
         console.error('Logout failed:', error);
       }
