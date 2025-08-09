@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
+// SSR adapter intentionally not used on this branch
 
 export default defineConfig({
   output: 'static',
