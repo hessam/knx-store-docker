@@ -1,10 +1,23 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { stripe, CURRENCIES, validateAmount } from '../../src/lib/stripe';
+import Stripe from 'stripe';
+
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+const CURRENCIES = {
+  USD: { code: 'usd', minimumAmount: 50 },
+  EUR: { code: 'eur', minimumAmount: 50 },
+  AED: { code: 'aed', minimumAmount: 200 },
+} as const;
+
+function validateAmount(amount: number, currency: keyof typeof CURRENCIES): boolean {
+  return Number.isFinite(amount) && amount >= CURRENCIES[currency].minimumAmount;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { amount, currency = 'USD', description } = req.body || {};
+    const body = (req.body && typeof req.body === 'object') ? req.body : JSON.parse(req.body || '{}');
+    const { amount, currency = 'USD', description } = body;
     const code = String(currency).toUpperCase() as keyof typeof CURRENCIES;
     if (!CURRENCIES[code]) return res.status(400).json({ error: 'Unsupported currency' });
     if (!validateAmount(Number(amount), code)) {
