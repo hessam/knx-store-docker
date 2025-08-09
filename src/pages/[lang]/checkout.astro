@@ -196,7 +196,7 @@ const title = `${t.checkout} - KNX Store`;
       setLoading(true);
 
       try {
-        const response = await fetch('/api/payment', {
+        const response = await fetch('/api/payments/create-intent', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -215,7 +215,13 @@ const title = `${t.checkout} - KNX Store`;
           throw new Error(result.error || 'Payment failed');
         }
 
-        const { error, paymentIntent } = await stripe.confirmPayment({
+        const { clientSecret } = result;
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: { email: customerEmail },
+          },
+        });
           elements,
           confirmParams: {
             return_url: `${window.location.origin}/${window.location.pathname.split('/')[1]}/checkout`,
@@ -232,7 +238,7 @@ const title = `${t.checkout} - KNX Store`;
           throw new Error(error.message);
         }
 
-        if (paymentIntent.status === 'succeeded') {
+        if (paymentIntent && paymentIntent.status === 'succeeded') {
           showSuccess(`Payment successful! Amount: ${currencySymbols[currency]}${amount.toFixed(2)}`);
         } else {
           throw new Error('Payment was not completed');
