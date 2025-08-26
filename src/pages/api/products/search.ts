@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ url }) => {
   const startTime = Date.now();
   
   try {
-    // Parse search parameters
+    // Parse search parameters and filter out null/undefined values
     const searchParams: SearchParams = {
       q: url.searchParams.get('q') || '',
       category: url.searchParams.get('category') || undefined,
@@ -56,19 +56,24 @@ export const GET: APIRoute = async ({ url }) => {
       featured: url.searchParams.get('featured') === 'true',
     };
 
-    console.log('[Search API] Search params:', searchParams);
+    // Clean undefined values to prevent "undefined" in URL
+    const cleanParams = Object.fromEntries(
+      Object.entries(searchParams).filter(([_, value]) => value !== undefined && value !== null && value !== '')
+    ) as SearchParams;
+
+    console.log('[Search API] Search params:', cleanParams);
 
     // Get WooCommerce sync instance
     const wooCommerceSync = getWooCommerceSync();
 
-    // Fetch products with filters (with caching)
+    // Fetch products with filters (with caching) - use cleaned params
     const allProducts = await wooCommerceSync.fetchProducts({
       per_page: 1000, // Get more products for better filtering
-      search: searchParams.q,
-      category: searchParams.category,
-      tag: searchParams.tag,
-      featured: searchParams.featured,
-      lang: searchParams.lang,
+      search: cleanParams.q,
+      category: cleanParams.category,
+      tag: cleanParams.tag,
+      featured: cleanParams.featured,
+      lang: cleanParams.lang || 'en',
     });
 
     console.log(`[Search API] Fetched ${allProducts.length} products from WooCommerce`);
@@ -77,12 +82,12 @@ export const GET: APIRoute = async ({ url }) => {
     let filteredProducts = allProducts.filter(product => {
       // Price filtering
       const price = parseFloat(product.price || '0');
-      if (searchParams.min_price && price < searchParams.min_price) return false;
-      if (searchParams.max_price && price > searchParams.max_price) return false;
+      if (cleanParams.min_price && price < cleanParams.min_price) return false;
+      if (cleanParams.max_price && price > cleanParams.max_price) return false;
 
       // Text search in name and description
-      if (searchParams.q) {
-        const query = searchParams.q.toLowerCase();
+      if (cleanParams.q) {
+        const query = cleanParams.q.toLowerCase();
         const searchText = `${product.name} ${product.description} ${product.short_description}`.toLowerCase();
         if (!searchText.includes(query)) return false;
       }
@@ -94,7 +99,7 @@ export const GET: APIRoute = async ({ url }) => {
     filteredProducts.sort((a, b) => {
       let aValue: any, bValue: any;
       
-      switch (searchParams.sort) {
+      switch (cleanParams.sort) {
         case 'price':
           aValue = parseFloat(a.price || '0');
           bValue = parseFloat(b.price || '0');
@@ -118,7 +123,7 @@ export const GET: APIRoute = async ({ url }) => {
           break;
       }
 
-      if (searchParams.order === 'desc') {
+      if (cleanParams.order === 'desc') {
         return bValue > aValue ? 1 : bValue < aValue ? -1 : 0;
       } else {
         return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
@@ -127,9 +132,9 @@ export const GET: APIRoute = async ({ url }) => {
 
     // Pagination
     const total = filteredProducts.length;
-    const totalPages = Math.ceil(total / searchParams.per_page!);
-    const startIndex = (searchParams.page! - 1) * searchParams.per_page!;
-    const endIndex = startIndex + searchParams.per_page!;
+    const totalPages = Math.ceil(total / cleanParams.per_page!);
+    const startIndex = (cleanParams.page! - 1) * cleanParams.per_page!;
+    const endIndex = startIndex + cleanParams.per_page!;
     const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
     // Generate filter data for faceted search
@@ -182,10 +187,10 @@ export const GET: APIRoute = async ({ url }) => {
         stock_status: product.stock_status,
       })),
       total,
-      page: searchParams.page!,
-      per_page: searchParams.per_page!,
+      page: cleanParams.page!,
+      per_page: cleanParams.per_page!,
       total_pages: totalPages,
-      has_more: searchParams.page! < totalPages,
+      has_more: cleanParams.page! < totalPages,
       filters: {
         categories: Array.from(categories.values()).sort((a, b) => b.count - a.count),
         price_range: { 
