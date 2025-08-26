@@ -1,0 +1,101 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import { getWooCommerceSync } from "../../../lib/api/woocommerce-sync";
+
+export async function getStaticPaths() {
+  try {
+    const woocommerce = getWooCommerceSync();
+    const products = await woocommerce.fetchProducts({
+      per_page: 100,
+      status: "publish"
+    });
+    
+    const languages = ["en", "de", "ar"];
+    const paths = [];
+    
+    for (const product of products) {
+      for (const lang of languages) {
+        paths.push({
+          params: { lang, slug: product.slug },
+          props: { product, lang }
+        });
+      }
+    }
+    
+    return paths;
+  } catch (error) {
+    console.error("Error generating static paths:", error);
+    
+    const languages = ["en", "de", "ar"];
+    const mockProducts = [
+      { slug: "knx-smart-switch-fallback", id: 1, name: "KNX Smart Switch - Fallback", price: "49.99" },
+      { slug: "knx-dimmer-fallback", id: 2, name: "KNX Dimmer - Fallback", price: "79.99" }
+    ];
+    
+    const paths = [];
+    for (const product of mockProducts) {
+      for (const lang of languages) {
+        paths.push({
+          params: { lang, slug: product.slug },
+          props: { product, lang }
+        });
+      }
+    }
+    
+    return paths;
+  }
+}
+
+const { product, lang } = Astro.props;
+
+const title = `${product.name} | KNX Store`;
+const description = product.short_description || product.description || "KNX smart home product";
+---
+
+<Layout title={title} description={description}>
+  <main class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="space-y-4">
+        {product.images && product.images.length > 0 ? (
+          <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            <img 
+              src={product.images[0].src} 
+              alt={product.images[0].alt || product.name}
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div class="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
+            <span class="text-gray-500">No image available</span>
+          </div>
+        )}
+      </div>
+      
+      <div class="space-y-6">
+        <h1 class="text-3xl font-bold text-gray-900">{product.name}</h1>
+        
+        {product.price && (
+          <div class="text-2xl font-bold text-blue-600">
+            €{product.price}
+          </div>
+        )}
+        
+        {product.short_description && (
+          <div class="prose prose-sm text-gray-600" set:html={product.short_description}></div>
+        )}
+        
+        <button class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+    
+    {product.description && (
+      <div class="mt-12">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Description</h2>
+        <div class="prose max-w-none" set:html={product.description}></div>
+      </div>
+    )}
+  </main>
+</Layout>
