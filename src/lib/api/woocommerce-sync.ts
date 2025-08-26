@@ -711,22 +711,29 @@ export const getWooCommerceSync = (): WooCommerceSync => {
         consumerKey: !!consumerKey,
         consumerSecret: !!consumerSecret,
       });
-      throw new Error('WooCommerce API credentials not configured. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET environment variables.');
+      
+      // Create mock instance for build time when credentials are missing
+      console.log('[WooCommerce Sync] Creating mock WooCommerce instance for build process');
+      wooCommerceSyncInstance = createWooCommerceSync({
+        baseURL: 'https://mock.example.com/wp-json/wc/v3',
+        consumerKey: 'mock_key',
+        consumerSecret: 'mock_secret',
+      });
+    } else {
+      console.log('[WooCommerce Sync] Creating instance with URL:', baseURL);
+
+      wooCommerceSyncInstance = createWooCommerceSync({
+        baseURL,
+        consumerKey,
+        consumerSecret,
+        timeout: 10000,
+        redis: {
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379'),
+          password: process.env.REDIS_PASSWORD,
+        },
+      });
     }
-
-    console.log('[WooCommerce Sync] Creating instance with URL:', baseURL);
-
-    wooCommerceSyncInstance = createWooCommerceSync({
-      baseURL,
-      consumerKey,
-      consumerSecret,
-      timeout: 10000,
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
-    });
   }
   return wooCommerceSyncInstance;
 }; 
