@@ -4,47 +4,27 @@
 echo "🔧 Testing Vercel deployment configuration..."
 echo "============================================="
 
-# Check imports in astro.config.mjs
+# Check Astro configuration
 echo "✅ Checking Astro configuration..."
-if grep -q "from \"@astrojs/vercel\"" astro.config.mjs; then
-    echo "✅ Using correct Vercel adapter import"
+if grep -q "output.*static" astro.config.mjs; then
+    echo "✅ Using static output mode"
 else
-    echo "❌ Incorrect Vercel adapter import found"
+    echo "❌ Not using static output mode"
     exit 1
 fi
 
-if grep -q "output.*hybrid" astro.config.mjs; then
-    echo "✅ Using hybrid output mode"
-else
-    echo "❌ Not using hybrid output mode"
-    exit 1
-fi
-
-# Check API routes have prerender = false
+# Check API routes structure
 echo "✅ Checking API routes configuration..."
-api_files_count=$(find src/pages/api -name "*.ts" | wc -l)
-prerender_count=$(grep -r "export const prerender = false" src/pages/api --include="*.ts" | wc -l)
-
-echo "   - API files found: $api_files_count"
-echo "   - Files with prerender = false: $prerender_count"
-
-if [ "$prerender_count" -gt 0 ]; then
-    echo "✅ API routes configured for server-side rendering"
+if [ -d "api" ]; then
+    api_files_count=$(find api -name "*.ts" | wc -l)
+    echo "   - API files found in /api: $api_files_count"
+    echo "✅ Using Vercel native API routes"
 else
-    echo "⚠️  No API routes have prerender = false (this may be OK)"
-fi
-
-# Check for problematic process handlers
-echo "✅ Checking for serverless-incompatible code..."
-if grep -r "process\.on" src/pages/api --include="*.ts" > /dev/null 2>&1; then
-    echo "❌ Found process handlers in API routes (not compatible with serverless)"
-    grep -r "process\.on" src/pages/api --include="*.ts"
+    echo "❌ No /api directory found"
     exit 1
-else
-    echo "✅ No problematic process handlers found"
 fi
 
-# Check vercel.json syntax
+# Check vercel.json configuration
 echo "✅ Checking vercel.json..."
 if [ -f "vercel.json" ]; then
     if python3 -c "import json; json.load(open('vercel.json'))" 2>/dev/null; then
@@ -54,22 +34,31 @@ if [ -f "vercel.json" ]; then
         exit 1
     fi
     
-    if grep -q "functions" vercel.json; then
-        echo "❌ Found manual function configuration in vercel.json"
-        echo "   Remove 'functions' section to let Astro handle it automatically"
-        exit 1
+    if grep -q "functions" vercel.json && grep -q "api/\*\*/\*.ts" vercel.json; then
+        echo "✅ API functions properly configured"
     else
-        echo "✅ No manual function configuration found"
+        echo "❌ API functions not properly configured in vercel.json"
+        exit 1
     fi
 else
-    echo "✅ No vercel.json found (using Astro defaults)"
+    echo "❌ vercel.json not found"
+    exit 1
+fi
+
+# Check for @vercel/node dependency
+echo "✅ Checking dependencies..."
+if grep -q "@vercel/node" package.json; then
+    echo "✅ @vercel/node dependency found"
+else
+    echo "❌ @vercel/node dependency missing"
+    exit 1
 fi
 
 echo ""
 echo "🎉 Configuration test passed!"
-echo "🚀 Ready for Vercel deployment"
+echo "🚀 Ready for Vercel deployment with native API routes"
 echo ""
 echo "To deploy:"
 echo "1. git add ."
-echo "2. git commit -m \"Fix Vercel adapter and configuration\""
+echo "2. git commit -m \"Use static Astro with native Vercel API routes\""
 echo "3. git push origin main"
