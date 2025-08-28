@@ -51,6 +51,7 @@ In Slack, invite your bot to the channels where you want notifications:
 ```
 
 **Required channels:**
+
 - `#team-updates` - Build status notifications
 - `#code-reviews` - PR review notifications
 
@@ -150,4 +151,4 @@ If you want to manually enable/disable Slack notifications:
 
 **Status**: ✅ **Ready for Setup**  
 **Last Updated**: [Current Date]  
-**Version**: 1.0 
+**Version**: 1.0

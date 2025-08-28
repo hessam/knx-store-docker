@@ -152,12 +152,14 @@ npm run api-server
 ## 🐳 Docker Services
 
 ### Main Services
+
 - **knx-store-dev**: Main development environment
 - **wordpress-proxy**: Nginx proxy for WordPress API (optional)
 - **mysql-dev**: Local MySQL database (optional)
 - **redis-dev**: Redis cache (optional)
 
 ### Service Profiles
+
 ```bash
 # Basic development
 docker-compose up -d
@@ -178,18 +180,21 @@ docker-compose --profile database --profile cache --profile proxy up -d
 ## 🔧 Configuration
 
 ### Astro Configuration
+
 - **Output Mode**: Hybrid (static + server-side)
 - **Adapter**: Vercel serverless
 - **Integrations**: Tailwind, Sitemap, React, MDX
 - **Performance**: View transitions, asset optimization
 
 ### Tailwind Configuration
+
 - **Custom Colors**: Primary, Secondary, Accent palettes
 - **Typography**: Inter font family
 - **Animations**: Fade-in, slide-up, bounce-gentle
 - **Plugins**: Typography, Forms, Aspect Ratio
 
 ### TypeScript Configuration
+
 - **Strict Mode**: Enabled
 - **Path Mapping**: Configured for clean imports
 - **Astro Integration**: Full TypeScript support
@@ -218,6 +223,7 @@ docker-compose --profile database --profile cache --profile proxy up -d
 The project includes a comprehensive CI/CD pipeline that runs on every push and pull request:
 
 #### Pipeline Stages:
+
 1. **Lint & Type Check**: ESLint, TypeScript validation, code formatting
 2. **Unit Tests**: Jest tests with coverage reporting
 3. **Build & Test**: Production build verification
@@ -229,6 +235,7 @@ The project includes a comprehensive CI/CD pipeline that runs on every push and 
 9. **Post-deployment**: E2E tests, performance checks, SEO submission
 
 #### Required Secrets:
+
 ```bash
 # Vercel
 VERCEL_TOKEN=your_vercel_token
@@ -258,6 +265,7 @@ SLACK_WEBHOOK_URL=your_slack_webhook_url
 ### Preview Deployments
 
 #### Automatic Preview Deployments:
+
 Every pull request automatically gets a preview deployment:
 
 - **Trigger**: Created on every PR to `main` or `develop`
@@ -266,6 +274,7 @@ Every pull request automatically gets a preview deployment:
 - **Cleanup**: Automatically removed when PR is closed/merged
 
 #### Preview Features:
+
 - ✅ **Isolated Environment**: Each PR gets its own deployment
 - ✅ **Live Testing**: Test changes before merging
 - ✅ **Automatic Updates**: New commits update the preview
@@ -274,6 +283,7 @@ Every pull request automatically gets a preview deployment:
 - ✅ **Mobile Testing**: Responsive design validation
 
 #### Preview Testing Checklist:
+
 - [ ] Homepage loads correctly
 - [ ] Navigation works
 - [ ] Product catalog displays
@@ -286,6 +296,7 @@ Every pull request automatically gets a preview deployment:
 ### Local Development
 
 #### Pre-commit Hooks:
+
 ```bash
 # Install Husky hooks
 npm run prepare
@@ -298,6 +309,7 @@ npm run prepare
 ```
 
 #### Testing:
+
 ```bash
 # Run all tests
 npm run test
@@ -312,6 +324,7 @@ npm run test:performance # Performance tests
 ### Deployment
 
 #### Vercel Deployment
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -321,7 +334,9 @@ vercel --prod
 ```
 
 #### Environment Variables
+
 Set the following in your Vercel project:
+
 - All variables from `.env` file
 - `NODE_ENV=production`
 - `SITE_URL=https://your-domain.vercel.app`
@@ -348,10 +363,11 @@ MIT License - see LICENSE file for details
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue in the repository
 - Check the documentation
 - Review the troubleshooting guide
 
 ---
 
-**Built with ❤️ for the KNX/BMS community** 
+**Built with ❤️ for the KNX/BMS community**

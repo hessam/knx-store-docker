@@ -5,6 +5,7 @@ This project uses environment variables to configure the WooCommerce API connect
 ## Quick Setup
 
 1. **Copy the environment template:**
+
    ```bash
    cp .env.example .env
    ```
@@ -30,11 +31,13 @@ This project uses environment variables to configure the WooCommerce API connect
 ## Environment Variables
 
 ### Required for Production
+
 - `WOOCOMMERCE_API_URL` - Your WooCommerce REST API endpoint
 - `WOOCOMMERCE_CONSUMER_KEY` - WooCommerce API consumer key
 - `WOOCOMMERCE_CONSUMER_SECRET` - WooCommerce API consumer secret
 
 ### Optional
+
 - `UPSTASH_REDIS_REST_URL` - Redis URL for caching (improves performance)
 - `UPSTASH_REDIS_REST_TOKEN` - Redis authentication token
 - `GOOGLE_TRANSLATE_API_KEY` - For automatic product translation
@@ -52,12 +55,14 @@ To use this with a different WooCommerce store:
 ## Fallback Mode
 
 If API credentials are missing, the site will:
+
 - Use fallback product data during build
 - Show sample products in the catalog
 - Allow the site to build and deploy successfully
 - Log warnings about missing credentials
 
 This is useful for:
+
 - Development without API access
 - CI/CD environments
 - Demo deployments

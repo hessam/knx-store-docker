@@ -84,54 +84,84 @@ export async function getStaticPaths() {
     _links: { self: [{}], collection: [{}] }
   };
 
+  // Function to generate fallback paths
+  const generateFallbackPaths = () => {
+    const paths = [];
+    for (const lang of languages) {
+      paths.push({
+        params: {
+          lang: lang,
+          slug: fallbackProduct.slug
+        },
+        props: {
+          product: fallbackProduct,
+          lang: lang
+        }
+      });
+    }
+    console.log(`[Product Pages] Using fallback, generated ${paths.length} paths`);
+    return paths;
+  };
+
   try {
     // Try to use the real WooCommerce sync to fetch products
+    const { getWooCommerceSync } = await import('../../../lib/api/woocommerce-sync');
     const wooCommerceSync = getWooCommerceSync();
     const products = await wooCommerceSync.fetchProducts();
     
     console.log(`[Product Pages] Fetched ${products.length} products from WooCommerce`);
     
-    // Generate paths for all products and languages
-    const paths = [];
-    for (const product of products) {
-      for (const lang of languages) {
-        paths.push({
-          params: {
-            lang: lang,
-            slug: product.slug
-          },
-          props: {
-            product: product,
-            lang: lang
-          }
-        });
+    // If we have real products, use them
+    if (products && products.length > 0) {
+      const paths = [];
+      for (const product of products) {
+        // Skip products with invalid slugs
+        if (!product.slug || product.slug.trim() === '') {
+          console.warn(`[Product Pages] Skipping product with invalid slug:`, product.id, product.name);
+          continue;
+        }
+        
+        // Validate slug to ensure it's safe for URL routing
+        const slug = product.slug.trim();
+        
+        // Skip URL-encoded slugs that contain non-ASCII characters
+        if (slug.includes('%') || /[^\w\-]/.test(slug)) {
+          console.warn(`[Product Pages] Skipping product with complex slug:`, product.id, slug);
+          continue;
+        }
+        
+        for (const lang of languages) {
+          paths.push({
+            params: {
+              lang: lang,
+              slug: slug
+            },
+            props: {
+              product: product,
+              lang: lang
+            }
+          });
+        }
       }
+      
+      // If no valid products after filtering, use fallback
+      if (paths.length === 0) {
+        console.log('[Product Pages] No valid products after filtering, using fallback');
+        return generateFallbackPaths();
+      }
+      
+      console.log(`[Product Pages] Generated ${paths.length} static paths`);
+      return paths;
+    } else {
+      // No products returned, use fallback
+      console.log('[Product Pages] No products returned from API, using fallback');
+      return generateFallbackPaths();
     }
-    
-    console.log(`[Product Pages] Generated ${paths.length} static paths`);
-    return paths;
     
   } catch (error) {
     console.error('[Product Pages] Error fetching products, using fallback:', error);
+    return generateFallbackPaths();
   }
-  
-  // Always fall back to basic product paths
-  const paths = [];
-  for (const lang of languages) {
-    paths.push({
-      params: {
-        lang: lang,
-        slug: fallbackProduct.slug
-      },
-      props: {
-        product: fallbackProduct,
-        lang: lang
-      }
-    });
-  }
-  
-  console.log(`[Product Pages] Using fallback, generated ${paths.length} paths`);
-  return paths;
 }
 
 // Get product from props

@@ -1,36 +1,36 @@
-import { defineConfig } from 'astro/config';
-import tailwind from '@astrojs/tailwind';
+import { defineConfig } from "astro/config";
+import tailwind from "@astrojs/tailwind";
 // SSR adapter intentionally not used on this branch
 
 export default defineConfig({
-  output: 'static',
+  output: "static",
   adapter: undefined,
 
-  integrations: [
-    tailwind()
-  ],
+  integrations: [tailwind()],
 
   vite: {
     define: {
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+      "process.env.NODE_ENV": JSON.stringify(
+        process.env.NODE_ENV || "development",
+      ),
     },
     // Performance optimizations
     build: {
-      minify: 'terser',
+      minify: "terser",
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['astro']
-          }
-        }
-      }
+            vendor: ["astro"],
+          },
+        },
+      },
     },
     // Optimize CSS
     css: {
-      devSourcemap: false
-    }
+      devSourcemap: false,
+    },
   },
 
   // SEO and Performance
-  site: 'https://knx-store-docker.vercel.app'
+  site: "https://knx-store-docker.vercel.app",
 });

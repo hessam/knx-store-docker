@@ -29,13 +29,6 @@
     ],
     "types": ["astro/client", "node"]
   },
-  "include": [
-    "src/**/*",
-    "astro.config.mjs"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".astro"
-  ]
-} 
+  "include": ["src/**/*", "astro.config.mjs"],
+  "exclude": ["node_modules", "dist", ".astro"]
+}
