@@ -15,8 +15,8 @@ interface PriceStockItem {
 
 interface RedisInstance {
   get: (key: string) => Promise<string | null>;
-  setex: (key: string, ttl: number, value: string) => Promise<void>;
-  del: (key: string) => Promise<void>;
+  setex: (key: string, ttl: number, value: string) => Promise<string>;
+  del: (key: string) => Promise<number>;
 }
 
 let redisInstance: RedisInstance | null = null;
@@ -46,9 +46,6 @@ async function getRedis(): Promise<RedisInstance | null> {
 
 async function fetchFromWooCommerce(productIds: string[]): Promise<PriceStockItem[]> {
   try {
-    const { getWooCommerceSync } = await import('./woocommerce-sync');
-    const wc = getWooCommerceSync();
-    
     // Batch request to WooCommerce API
     const response = await fetch(`${process.env.WOOCOMMERCE_API_URL}/products?include=${productIds.join(',')}&per_page=20`, {
       headers: {
