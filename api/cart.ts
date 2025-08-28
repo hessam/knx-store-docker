@@ -14,14 +14,6 @@ interface CartItem {
   image?: string;
 }
 
-interface Cart {
-  sessionId: string;
-  items: CartItem[];
-  total: string;
-  itemCount: number;
-  lastUpdated: string;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startTime = Date.now();
   

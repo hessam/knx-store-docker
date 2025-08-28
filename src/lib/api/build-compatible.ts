@@ -35,27 +35,27 @@ export async function getCartManager() {
       lastUpdated: new Date().toISOString(),
       currency: 'USD'
     }),
-    updateItem: async (sessionId: string, productId: string, quantity: number) => ({
-      sessionId,
+    updateItem: async (_sessionId: string, _productId: string, _quantity: number) => ({
+      sessionId: _sessionId,
       items: [],
       total: '0.00',
       itemCount: 0,
       lastUpdated: new Date().toISOString(),
       currency: 'USD'
     }),
-    removeItem: async (sessionId: string, productId: string) => ({
-      sessionId,
+    removeItem: async (_sessionId: string, _productId: string) => ({
+      sessionId: _sessionId,
       items: [],
       total: '0.00',
       itemCount: 0,
       lastUpdated: new Date().toISOString(),
       currency: 'USD'
     }),
-    clearCart: async (sessionId: string) => true
+    clearCart: async (_sessionId: string) => true
   };
 }
 
-export async function performProductSearch(options: any) {
+export async function performProductSearch(_options: any) {
   // Simplified search for build compatibility
   return {
     results: [],

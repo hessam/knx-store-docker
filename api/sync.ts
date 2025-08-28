@@ -33,8 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           success: true,
           action: "sync",
           productsCount: products.length,
-          lastSync: status.lastSync,
-          status: status.status,
+          lastSync: status?.lastSync || null,
+          status: status?.status || 'unknown',
         });
       }
 
@@ -57,16 +57,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         console.log("[WooCommerce Sync API] Force sync requested");
-        await sync.clearCache();
-        const products = await sync.fetchProducts({ forceRefresh: true });
+        // Remove clearCache call as it doesn't exist
+        const products = await sync.fetchProducts({ per_page: 100 });
         const status = await sync.getSyncStatus();
 
         return res.status(200).json({
           success: true,
           action: "force-sync",
           productsCount: products.length,
-          lastSync: status.lastSync,
-          status: status.status,
+          lastSync: status?.lastSync || null,
+          status: status?.status || 'unknown',
         });
       }
 
