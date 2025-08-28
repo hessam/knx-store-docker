@@ -697,31 +697,36 @@ export const getWooCommerceSync = (): WooCommerceSync => {
     const baseURL = process.env.WOOCOMMERCE_API_URL || 'https://mohtavaly.com/wp-json/wc/v3';
     const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || '';
     const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || '';
+    const allowBuildWithoutApi = process.env.ALLOW_BUILD_WITHOUT_API === 'true';
 
     console.log('[WooCommerce Sync] Environment check:', {
       baseURL,
       consumerKey: consumerKey ? 'SET' : 'NOT SET',
       consumerSecret: consumerSecret ? 'SET' : 'NOT SET',
+      allowBuildWithoutApi,
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV,
     });
 
     if (!consumerKey || !consumerSecret) {
-      console.error('[WooCommerce Sync] Missing credentials:', {
-        consumerKey: !!consumerKey,
-        consumerSecret: !!consumerSecret,
-      });
-      
-      // Create mock instance for build time when credentials are missing
-      console.log('[WooCommerce Sync] Creating mock WooCommerce instance for build process');
-      wooCommerceSyncInstance = createWooCommerceSync({
-        baseURL: 'https://mock.example.com/wp-json/wc/v3',
-        consumerKey: 'mock_key',
-        consumerSecret: 'mock_secret',
-      });
+      if (allowBuildWithoutApi) {
+        console.log('[WooCommerce Sync] Creating instance with placeholders for build - will use fallback data');
+        wooCommerceSyncInstance = createWooCommerceSync({
+          baseURL,
+          consumerKey: 'build_placeholder',
+          consumerSecret: 'build_placeholder',
+          timeout: 10000,
+          redis: {
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379'),
+            password: process.env.REDIS_PASSWORD,
+          },
+        });
+      } else {
+        throw new Error('WooCommerce API credentials are required. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your .env file.');
+      }
     } else {
-      console.log('[WooCommerce Sync] Creating instance with URL:', baseURL);
-
+      console.log('[WooCommerce Sync] Creating instance with real credentials');
       wooCommerceSyncInstance = createWooCommerceSync({
         baseURL,
         consumerKey,
