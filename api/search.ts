@@ -58,33 +58,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     
     const searchLimit = Math.min(parseInt(limit as string) || 20, 50);
     
-    // Dynamic import to avoid build issues
-    const { performProductSearch } = await import('../../src/lib/api/product-search');
-    
-    const searchResults = await performProductSearch({
-      query: q.trim(),
-      limit: searchLimit,
-      category: category as string,
-      minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
-      maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
-      inStock: inStock === 'true'
-    });
-    
-    const responseTime = Date.now() - startTime;
-    
-    const response: SearchResponse = {
-      results: searchResults.results,
-      total: searchResults.total,
-      query: q.trim(),
-      suggestions: searchResults.suggestions,
-      metadata: {
-        responseTime,
-        cached: searchResults.cached,
-        timestamp: new Date().toISOString()
-      }
-    };
-    
-    res.status(200).json(response);
+    // Dynamic import with build compatibility
+    try {
+      const searchModule = await import('../src/lib/api/build-compatible.js');
+      const { performProductSearch } = searchModule;
+      
+      const searchResults = await performProductSearch({
+        query: q.trim(),
+        limit: searchLimit,
+        category: category as string,
+        minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
+        maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined,
+        inStock: inStock === 'true'
+      });
+      
+      const responseTime = Date.now() - startTime;
+      
+      const response: SearchResponse = {
+        results: searchResults.results,
+        total: searchResults.total,
+        query: q.trim(),
+        suggestions: searchResults.suggestions,
+        metadata: {
+          responseTime,
+          cached: searchResults.cached,
+          timestamp: new Date().toISOString()
+        }
+      };
+      
+      res.status(200).json(response);
+    } catch (importError) {
+      console.error('Failed to import search module:', importError);
+      throw new Error('Search service unavailable');
+    }
     
   } catch (error) {
     console.error('Search API Error:', error);

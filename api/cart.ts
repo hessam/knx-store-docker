@@ -42,84 +42,97 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'sessionId required' });
     }
     
-    // Dynamic import to avoid build issues
-    const { getCartManager } = await import('../../src/lib/api/cart-manager');
-    const cartManager = await getCartManager();
+    // Dynamic import with build compatibility
+    try {
+      const cartModule = await import('../src/lib/api/build-compatible.js');
+      const { getCartManager } = cartModule;
+      const cartManager = await getCartManager();
     
-    switch (req.method) {
-      case 'GET':
-        // Get cart contents
-        const cart = await cartManager.getCart(sessionId);
-        
-        res.status(200).json({
-          cart,
-          metadata: {
-            responseTime: Date.now() - startTime,
-            timestamp: new Date().toISOString()
+      switch (req.method) {
+        case 'GET':
+          // Get cart contents
+          const cart = await cartManager.getCart(sessionId);
+          
+          res.status(200).json({
+            cart,
+            metadata: {
+              responseTime: Date.now() - startTime,
+              timestamp: new Date().toISOString()
+            }
+          });
+          break;
+          
+        case 'POST':
+          // Add item to cart
+          const { item } = req.body;
+          
+          if (!item || !item.productId || !item.quantity) {
+            return res.status(400).json({ error: 'Invalid item data' });
           }
-        });
-        break;
-        
-      case 'POST':
-        // Add item to cart
-        const { item } = req.body;
-        
-        if (!item || !item.productId || !item.quantity) {
-          return res.status(400).json({ error: 'Invalid item data' });
+          
+          const updatedCart = await cartManager.addItem(sessionId, item);
+          
+          res.status(200).json({
+            cart: updatedCart,
+            metadata: {
+              responseTime: Date.now() - startTime,
+              timestamp: new Date().toISOString()
+            }
+          });
+          break;
+          
+        case 'PUT':
+          // Update item quantity
+          const { productId, quantity } = req.body;
+          
+          if (!productId || quantity === undefined) {
+            return res.status(400).json({ error: 'productId and quantity required' });
+          }
+          
+          const modifiedCart = await cartManager.updateItem(sessionId, productId, quantity);
+          
+          res.status(200).json({
+            cart: modifiedCart,
+            metadata: {
+              responseTime: Date.now() - startTime,
+              timestamp: new Date().toISOString()
+            }
+          });
+          break;
+          
+        case 'DELETE':
+          // Remove item or clear cart
+          const { productId: removeProductId } = req.body;
+          
+          let clearedCart;
+          if (removeProductId) {
+            clearedCart = await cartManager.removeItem(sessionId, removeProductId);
+          } else {
+            await cartManager.clearCart(sessionId);
+            clearedCart = await cartManager.getCart(sessionId);
+          }
+          
+          res.status(200).json({
+            cart: clearedCart,
+            metadata: {
+              responseTime: Date.now() - startTime,
+              timestamp: new Date().toISOString()
+            }
+          });
+          break;
+          
+        default:
+          res.status(405).json({ error: 'Method not allowed' });
+      }
+    } catch (importError) {
+      console.error('Failed to import cart module:', importError);
+      res.status(500).json({ 
+        error: 'Cart service unavailable',
+        metadata: {
+          responseTime: Date.now() - startTime,
+          timestamp: new Date().toISOString()
         }
-        
-        const updatedCart = await cartManager.addItem(sessionId, item);
-        
-        res.status(200).json({
-          cart: updatedCart,
-          metadata: {
-            responseTime: Date.now() - startTime,
-            timestamp: new Date().toISOString()
-          }
-        });
-        break;
-        
-      case 'PUT':
-        // Update item quantity
-        const { productId, quantity } = req.body;
-        
-        if (!productId || quantity === undefined) {
-          return res.status(400).json({ error: 'productId and quantity required' });
-        }
-        
-        const modifiedCart = await cartManager.updateQuantity(sessionId, productId, quantity);
-        
-        res.status(200).json({
-          cart: modifiedCart,
-          metadata: {
-            responseTime: Date.now() - startTime,
-            timestamp: new Date().toISOString()
-          }
-        });
-        break;
-        
-      case 'DELETE':
-        // Remove item or clear cart
-        const { productId: removeProductId } = req.body;
-        
-        let clearedCart;
-        if (removeProductId) {
-          clearedCart = await cartManager.removeItem(sessionId, removeProductId);
-        } else {
-          clearedCart = await cartManager.clearCart(sessionId);
-        }
-        
-        res.status(200).json({
-          cart: clearedCart,
-          metadata: {
-            responseTime: Date.now() - startTime,
-            timestamp: new Date().toISOString()
-          }
-        });
-        break;
-        
-      default:
-        res.status(405).json({ error: 'Method not allowed' });
+      });
     }
     
   } catch (error) {

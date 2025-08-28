@@ -4,6 +4,10 @@
  * Features: Fuzzy matching, caching, intelligent relevance scoring
  */
 
+// Node.js compatibility for Vercel functions
+declare const process: any;
+declare const Buffer: any;
+
 interface SearchOptions {
   query: string;
   limit: number;
@@ -44,7 +48,9 @@ async function getRedis(): Promise<RedisInstance | null> {
   if (redisInstance) return redisInstance;
   
   try {
-    const { Redis } = await import('@upstash/redis');
+    // Dynamic import for Upstash Redis
+    const RedisModule = await import('@upstash/redis');
+    const { Redis } = RedisModule;
     
     if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
       console.warn('[Product Search] Redis not configured, using direct search');
@@ -90,37 +96,11 @@ function calculateRelevanceScore(product: any, query: string): number {
   const queryWords = searchTerm.split(' ');
   const nameWords = name.split(' ');
   const matchingWords = queryWords.filter(word => 
-    nameWords.some(nameWord => nameWord.includes(word) || word.includes(nameWord))
+    nameWords.some((nameWord: string) => nameWord.includes(word) || word.includes(nameWord))
   );
   score += (matchingWords.length / queryWords.length) * 20;
   
   return score;
-}
-
-function generateSearchSuggestions(query: string, products: any[]): string[] {
-  const suggestions = new Set<string>();
-  const searchTerm = query.toLowerCase();
-  
-  products.forEach(product => {
-    const name = (product.name || '').toLowerCase();
-    const words = name.split(' ');
-    
-    words.forEach(word => {
-      if (word.length > 3 && word.includes(searchTerm.slice(0, 3))) {
-        suggestions.add(word);
-      }
-    });
-    
-    // Add category suggestions
-    product.categories?.forEach((cat: any) => {
-      const catName = cat.name.toLowerCase();
-      if (catName.includes(searchTerm)) {
-        suggestions.add(cat.name);
-      }
-    });
-  });
-  
-  return Array.from(suggestions).slice(0, 5);
 }
 
 async function searchWooCommerceProducts(options: SearchOptions): Promise<SearchResult[]> {
@@ -129,7 +109,6 @@ async function searchWooCommerceProducts(options: SearchOptions): Promise<Search
     
     // Add filters
     if (options.category) {
-      // Note: This would require category ID mapping in a real implementation
       apiUrl += `&category=${options.category}`;
     }
     
@@ -173,7 +152,7 @@ async function searchWooCommerceProducts(options: SearchOptions): Promise<Search
     }));
     
     // Sort by relevance score (highest first)
-    return resultsWithScore.sort((a, b) => b.relevanceScore - a.relevanceScore);
+    return resultsWithScore.sort((a: SearchResult, b: SearchResult) => b.relevanceScore - a.relevanceScore);
     
   } catch (error) {
     console.error('[Product Search] WooCommerce search failed:', error);

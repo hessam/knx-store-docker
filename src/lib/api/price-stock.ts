@@ -3,6 +3,10 @@
  * Optimized for sub-200ms response times
  */
 
+// Node.js compatibility for Vercel functions
+declare const process: any;
+declare const Buffer: any;
+
 interface PriceStockItem {
   productId: string;
   price: string;
@@ -25,7 +29,9 @@ async function getRedis(): Promise<RedisInstance | null> {
   if (redisInstance) return redisInstance;
   
   try {
-    const { Redis } = await import('@upstash/redis');
+    // Dynamic import for Upstash Redis
+    const RedisModule = await import('@upstash/redis');
+    const { Redis } = RedisModule;
     
     if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
       console.warn('[Price/Stock] Redis not configured, using direct API calls');

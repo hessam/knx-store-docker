@@ -34,21 +34,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid productIds (1-20 products allowed)' });
     }
 
-    // Dynamic import to avoid build issues
-    const { getPriceStockData } = await import('../../src/lib/api/price-stock');
-    
-    const priceStockData = await getPriceStockData(ids);
-    
-    const responseTime = Date.now() - startTime;
-    
-    res.status(200).json({
-      data: priceStockData,
-      metadata: {
-        responseTime,
-        cached: priceStockData.some(item => item.cached),
-        timestamp: new Date().toISOString()
-      }
-    });
+    // Dynamic import with build compatibility
+    try {
+      const priceStockModule = await import('../src/lib/api/build-compatible.js');
+      const { getPriceStockData } = priceStockModule;
+      
+      const priceStockData = await getPriceStockData(ids);
+      
+      const responseTime = Date.now() - startTime;
+      
+      res.status(200).json({
+        data: priceStockData,
+        metadata: {
+          responseTime,
+          cached: priceStockData.some((item: any) => item.cached),
+          timestamp: new Date().toISOString()
+        }
+      });
+    } catch (importError) {
+      console.error('Failed to import price-stock module:', importError);
+      throw new Error('Price/stock service unavailable');
+    }
     
   } catch (error) {
     console.error('Price/Stock API Error:', error);

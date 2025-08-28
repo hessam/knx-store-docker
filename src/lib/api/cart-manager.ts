@@ -4,6 +4,9 @@
  * Features: Redis-based storage, session persistence, smart caching
  */
 
+// Node.js compatibility for Vercel functions
+declare const process: any;
+
 interface CartItem {
   productId: string;
   name: string;
@@ -54,7 +57,9 @@ async function getRedis(): Promise<RedisInstance | null> {
   if (redisInstance) return redisInstance;
   
   try {
-    const { Redis } = await import('@upstash/redis');
+    // Dynamic import for Upstash Redis
+    const RedisModule = await import('@upstash/redis');
+    const { Redis } = RedisModule;
     
     if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
       console.warn('[Cart Manager] Redis not configured, using in-memory storage');
