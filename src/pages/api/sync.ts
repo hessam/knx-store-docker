@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { getWooCommerceSync } from "../../lib/api/woocommerce-sync";
 
+export const prerender = false;
+
 // Global sync interval (5 minutes) - unused but kept for future reference
 // let syncInterval: NodeJS.Timeout | null = null;
 

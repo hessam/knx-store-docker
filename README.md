@@ -485,12 +485,6 @@ The `vercel.json` is pre-configured with:
 ```json
 {
   "version": 2,
-  "name": "knx-store",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install --legacy-peer-deps",
-  "devCommand": "npm run dev",
-  "framework": "astro",
   "redirects": [
     {
       "source": "/products/test",

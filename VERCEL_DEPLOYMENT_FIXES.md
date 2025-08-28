@@ -2,103 +2,88 @@
 
 ## Issues Resolved ✅
 
-### 1. **Runtime Version Error**
-- **Problem**: `Error: Function Runtimes must have a valid version`
-- **Solution**: Updated `vercel.json` to specify exact runtime version `@vercel/node@3.0.7`
+### 1. **Function Pattern Matching Error**
+- **Problem**: `The pattern "src/pages/api/**/*.ts" defined in functions doesn't match any Serverless Functions inside the api directory`
+- **Solution**: Removed manual function configuration from `vercel.json` and let Astro handle it automatically
 
-### 2. **Duplicate API Directories**
-- **Problem**: Conflicting API routes in `/api` and `/src/pages/api`
-- **Solution**: Removed `/api` directory, kept only Astro-compliant `/src/pages/api`
+### 2. **Static vs Hybrid Output**
+- **Problem**: Project was configured for static output but had API routes requiring server-side rendering
+- **Solution**: Changed Astro config to `output: "hybrid"` with Vercel adapter
 
-### 3. **Missing Dependencies**
-- **Problem**: `@vercel/node` not installed as dependency
-- **Solution**: Added `@vercel/node@3.0.7` to package.json dependencies
+### 3. **Unnecessary Manual Configuration**
+- **Problem**: Over-configuration in `vercel.json` causing conflicts
+- **Solution**: Simplified `vercel.json` to only include redirects and headers
 
-### 4. **JSON Syntax Issues**
-- **Problem**: Trailing commas in package.json scripts
-- **Solution**: Fixed JSON syntax in package.json
+### 4. **Redundant Dependencies**
+- **Problem**: Manual `@vercel/node` dependency conflicting with Astro's automatic handling
+- **Solution**: Removed `@vercel/node` dependency
 
 ## Files Modified 🔧
 
-### `vercel.json`
+### `astro.config.mjs`
+```javascript
+import { defineConfig } from "astro/config";
+import tailwind from "@astrojs/tailwind";
+import vercel from "@astrojs/vercel/serverless";
+
+export default defineConfig({
+  output: "hybrid",
+  adapter: vercel(),
+  integrations: [tailwind()],
+  // ... rest of config
+});
+```
+
+### `vercel.json` (Simplified)
 ```json
 {
   "version": 2,
-  "name": "knx-store",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install --legacy-peer-deps",
-  "functions": {
-    "src/pages/api/**/*.ts": {
-      "runtime": "@vercel/node@3.0.7"
-    }
-  }
+  "redirects": [...],
+  "headers": [...]
 }
 ```
 
+### API Routes
+- Added `export const prerender = false;` to API routes to ensure server-side rendering
+
 ### `package.json`
-- Added `@vercel/node@3.0.7` to dependencies
-- Fixed JSON syntax (removed trailing commas)
-- Added `validate:build` script
+- Removed `@vercel/node` dependency (Astro handles this automatically)
 
-### File Structure
-```
-src/pages/api/           ← Correct Astro API location
-├── auth/
-│   ├── login.ts
-│   ├── logout.ts
-│   └── me.ts
-├── payments/
-│   └── create-intent.ts
-└── ...other endpoints
+## How It Works Now 🚀
 
-/api/                    ← Removed (was causing conflicts)
-```
+1. **Astro Hybrid Mode**: Pages are static by default, API routes are server-rendered
+2. **Vercel Adapter**: `@astrojs/vercel/serverless` handles function deployment automatically
+3. **Automatic Detection**: Vercel detects Astro project and configures functions automatically
+4. **Clean Configuration**: Minimal `vercel.json` with only necessary customizations
 
-## Validation Script 📋
-
-Created `validate-build.sh` that checks:
-- ✅ JSON file validity
-- ✅ Required files exist
-- ✅ API directory structure
-- ✅ Vercel runtime configuration
-- ✅ Build process completion
-
-## Deployment Ready 🚀
+## Deployment Ready ✅
 
 The project is now ready for Vercel deployment with:
-- ✅ Proper runtime versions specified
-- ✅ Clean API route structure
-- ✅ All dependencies correctly installed
-- ✅ Valid JSON configuration files
-- ✅ Build process validated
+- ✅ Proper Astro hybrid output configuration
+- ✅ Automatic function handling by Astro/Vercel
+- ✅ Clean, minimal Vercel configuration
+- ✅ API routes properly configured for server-side rendering
 
 ## Next Steps
 
 1. **Commit changes**:
    ```bash
    git add .
-   git commit -m "Fix Vercel deployment: runtime versions, API structure, dependencies"
+   git commit -m "Fix Vercel deployment: use Astro hybrid mode with Vercel adapter"
    ```
 
 2. **Deploy to Vercel**:
    ```bash
    git push origin main
    ```
-   OR
-   ```bash
-   npx vercel --prod
-   ```
 
-3. **Monitor deployment** in Vercel dashboard for any remaining issues
+3. **Monitor deployment** in Vercel dashboard
 
-## Environment Variables Required
+## Key Learnings
 
-Ensure these are set in Vercel dashboard:
-- `WOOCOMMERCE_API_URL`
-- `WOOCOMMERCE_CONSUMER_KEY`
-- `WOOCOMMERCE_CONSUMER_SECRET`
-- `JWT_SECRET`
-- `NODE_ENV=production`
+- ✅ **Don't over-configure**: Let Astro and Vercel handle function deployment automatically
+- ✅ **Use hybrid output**: For projects with both static pages and API routes
+- ✅ **Vercel adapter**: Essential for proper serverless function deployment
+- ✅ **Prerender control**: Use `prerender = false` for API routes that need server-side rendering
 
-The deployment should now complete successfully without the runtime version error.
+The deployment should now complete successfully without function pattern errors!

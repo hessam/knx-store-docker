@@ -2,6 +2,8 @@ import type { APIRoute } from "astro";
 import { generateToken, createAuthCookie } from "../../../lib/auth";
 import { users } from "../../../middleware/auth";
 
+export const prerender = false;
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const { email, password } = await request.json();

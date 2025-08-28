@@ -1,10 +1,10 @@
 import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
-// SSR adapter intentionally not used on this branch
+import vercel from "@astrojs/vercel/serverless";
 
 export default defineConfig({
-  output: "static",
-  adapter: undefined,
+  output: "hybrid",
+  adapter: vercel(),
 
   integrations: [tailwind()],
 
