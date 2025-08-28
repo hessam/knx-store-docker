@@ -3,19 +3,8 @@ import { getWooCommerceSync } from "../../lib/api/woocommerce-sync";
 
 export const prerender = false;
 
-// Global sync interval (5 minutes) - unused but kept for future reference
-// let syncInterval: NodeJS.Timeout | null = null;
-
-// Initialize sync on module load
-if (typeof window === "undefined") {
-  console.log("[WooCommerce Sync API] Initializing auto sync...");
-  try {
-    const sync = getWooCommerceSync();
-    sync.startAutoSync();
-  } catch (error) {
-    console.error("[WooCommerce Sync API] Failed to initialize sync:", error);
-  }
-}
+// Note: Auto-sync initialization removed to prevent build issues
+// Auto-sync will be triggered on first API call instead
 
 export const GET: APIRoute = async ({ request }) => {
   try {
@@ -234,27 +223,4 @@ export const POST: APIRoute = async ({ request }) => {
   }
 };
 
-// Cleanup on process exit
-if (typeof process !== "undefined") {
-  process.on("SIGINT", async () => {
-    console.log("[WooCommerce Sync API] Shutting down...");
-    try {
-      const sync = getWooCommerceSync();
-      await sync.cleanup();
-    } catch (error) {
-      console.error("[WooCommerce Sync API] Cleanup error:", error);
-    }
-    process.exit(0);
-  });
-
-  process.on("SIGTERM", async () => {
-    console.log("[WooCommerce Sync API] Shutting down...");
-    try {
-      const sync = getWooCommerceSync();
-      await sync.cleanup();
-    } catch (error) {
-      console.error("[WooCommerce Sync API] Cleanup error:", error);
-    }
-    process.exit(0);
-  });
-}
+// Note: Process cleanup handlers removed for Vercel compatibility

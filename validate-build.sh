@@ -61,12 +61,13 @@ if [ ! -d "src/pages/api" ]; then
 fi
 echo "✅ Astro API directory structure is correct"
 
-# Check Vercel configuration
-echo "✅ Checking Vercel configuration..."
-if [ -f "vercel.json" ]; then
-    echo "✅ vercel.json exists"
+# Check Astro configuration
+echo "✅ Checking Astro configuration..."
+if grep -q "output.*hybrid" astro.config.mjs && grep -q "@astrojs/vercel" astro.config.mjs; then
+    echo "✅ Astro is configured for hybrid output with Vercel adapter"
 else
-    echo "✅ No vercel.json found (using Astro defaults)"
+    echo "❌ Astro configuration may have issues"
+    exit 1
 fi
 
 # Check if we can find npm/node
