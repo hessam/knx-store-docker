@@ -47,6 +47,7 @@
     "setup:woocommerce": "./setup-woocommerce.sh",
     "validate:woocommerce": "./validate-woocommerce.sh",
     "setup:vercel": "./setup-vercel-env.sh",
+    "validate:build": "./validate-build.sh"
   },
   "dependencies": {
     "@astrojs/check": "^0.5.2",
