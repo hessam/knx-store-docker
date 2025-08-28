@@ -16,18 +16,34 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": ["node", "@types/node"],
     "plugins": [
       {
         "name": "astro"
       }
-    ],
+    ]
   },
-  "include": ["src/**/*", "astro.config.mjs"],
-  "exclude": ["node_modules", "dist", ".astro", "src/pages/api-backup"]
+  "include": [
+    "src/**/*", 
+    "astro.config.mjs",
+    "api/**/*",
+    "vercel.json"
+  ],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    ".astro", 
+    "src/pages/api-backup",
+    "test-results",
+    "playwright-report"
+  ]
 }

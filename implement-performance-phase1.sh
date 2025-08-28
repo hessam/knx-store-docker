@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # KNX Store Performance Optimization Implementation
+*** ALWAYS CREATE NEW BRANCH ON GITHUB FOR THE EACH NEW PHASE OF IMPLEMENTATION
+
 echo "🚀 KNX Store Performance Optimization - Implementation Plan"
 echo "=========================================================="
 
