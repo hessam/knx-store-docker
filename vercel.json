@@ -8,6 +8,11 @@
   "framework": "astro",
   "redirects": [
     {
+      "source": "/",
+      "destination": "/en",
+      "permanent": false
+    },
+    {
       "source": "/products/test",
       "destination": "/en/products/catalog-optimized",
       "permanent": true

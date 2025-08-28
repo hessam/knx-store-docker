@@ -1,4 +1,25 @@
 ---
-// Redirect to English login page
-return Astro.redirect('/en/login');
+// Login page redirect - static version
+import Layout from '../layouts/Layout.astro';
 ---
+
+<Layout title="Login - KNX Store">
+  <head>
+    <meta http-equiv="refresh" content="0; url=/en/login" />
+    <link rel="canonical" href="/en/login" />
+  </head>
+  
+  <main>
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Login</h1>
+      <p>Redirecting to login page...</p>
+      <p>If you are not redirected automatically, <a href="/en/login">click here</a>.</p>
+    </div>
+  </main>
+  
+  <script>
+    if (typeof window !== 'undefined') {
+      window.location.href = '/en/login';
+    }
+  </script>
+</Layout>
