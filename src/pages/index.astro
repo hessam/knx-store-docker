@@ -1,4 +1,26 @@
 ---
-// Redirect to English by default
-return Astro.redirect("/en/");
+// Main landing page - static version with meta redirect
+import Layout from '../layouts/Layout.astro';
 ---
+
+<Layout title="KNX Store - Universal E-commerce Platform">
+  <head>
+    <meta http-equiv="refresh" content="0; url=/en/" />
+    <link rel="canonical" href="/en/" />
+  </head>
+  
+  <main>
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Welcome to KNX Store</h1>
+      <p>Redirecting to English version...</p>
+      <p>If you are not redirected automatically, <a href="/en/">click here</a>.</p>
+    </div>
+  </main>
+  
+  <script>
+    // JavaScript fallback redirect
+    if (typeof window !== 'undefined') {
+      window.location.href = '/en/';
+    }
+  </script>
+</Layout>

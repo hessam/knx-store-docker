@@ -1,5 +1,5 @@
-import axios from 'axios';
-import type { AxiosInstance, AxiosResponse } from 'axios';
+import axios from "axios";
+import type { AxiosInstance, AxiosResponse } from "axios";
 
 // Types for WooCommerce API responses
 export interface WooCommerceProduct {
@@ -215,41 +215,51 @@ export class WooCommerceAPI {
 
   constructor(config: WooCommerceConfig) {
     // this._config = config; // Unused in this implementation
-    
+
     // Create basic auth header
-    const auth = Buffer.from(`${config.consumerKey}:${config.consumerSecret}`).toString('base64');
-    
+    const auth = Buffer.from(
+      `${config.consumerKey}:${config.consumerSecret}`,
+    ).toString("base64");
+
     this.client = axios.create({
-      baseURL: `${config.baseURL}/wp-json/wc/v${config.version || '3'}`,
+      baseURL: `${config.baseURL}/wp-json/wc/v${config.version || "3"}`,
       timeout: config.timeout || 10000,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${auth}`,
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`,
       },
     });
 
     // Add request interceptor for logging
     this.client.interceptors.request.use(
       (config) => {
-        console.log(`[WooCommerce API] Request: ${config.method?.toUpperCase()} ${config.url}`);
+        console.log(
+          `[WooCommerce API] Request: ${config.method?.toUpperCase()} ${config.url}`,
+        );
         return config;
       },
       (error) => {
-        console.error('[WooCommerce API] Request Error:', error);
+        console.error("[WooCommerce API] Request Error:", error);
         return Promise.reject(error);
-      }
+      },
     );
 
     // Add response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => {
-        console.log(`[WooCommerce API] Response: ${response.status} ${response.config.url}`);
+        console.log(
+          `[WooCommerce API] Response: ${response.status} ${response.config.url}`,
+        );
         return response;
       },
       (error) => {
-        console.error('[WooCommerce API] Response Error:', error.response?.status, error.response?.data);
+        console.error(
+          "[WooCommerce API] Response Error:",
+          error.response?.status,
+          error.response?.data,
+        );
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -264,46 +274,56 @@ export class WooCommerceAPI {
     featured?: boolean;
     on_sale?: boolean;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WooCommerceProduct[]> {
     try {
-      const response: AxiosResponse<WooCommerceProduct[]> = await this.client.get('/products', {
-        params: {
-          ...params,
-        },
-      });
+      const response: AxiosResponse<WooCommerceProduct[]> =
+        await this.client.get("/products", {
+          params: {
+            ...params,
+          },
+        });
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error fetching products:', error);
-      throw new Error('Failed to fetch products from WooCommerce');
+      console.error("[WooCommerce API] Error fetching products:", error);
+      throw new Error("Failed to fetch products from WooCommerce");
     }
   }
 
   async getProduct(productId: number): Promise<WooCommerceProduct> {
     try {
-      const response: AxiosResponse<WooCommerceProduct> = await this.client.get(`/products/${productId}`);
+      const response: AxiosResponse<WooCommerceProduct> = await this.client.get(
+        `/products/${productId}`,
+      );
       return response.data;
     } catch (error) {
-      console.error(`[WooCommerce API] Error fetching product ${productId}:`, error);
+      console.error(
+        `[WooCommerce API] Error fetching product ${productId}:`,
+        error,
+      );
       throw new Error(`Failed to fetch product ${productId} from WooCommerce`);
     }
   }
 
   async getProductBySlug(slug: string): Promise<WooCommerceProduct> {
     try {
-      const response: AxiosResponse<WooCommerceProduct[]> = await this.client.get('/products', {
-        params: {
-          slug,
-        },
-      });
-      
+      const response: AxiosResponse<WooCommerceProduct[]> =
+        await this.client.get("/products", {
+          params: {
+            slug,
+          },
+        });
+
       if (response.data && response.data.length > 0) {
         return response.data[0];
       }
-      
+
       throw new Error(`Product with slug "${slug}" not found`);
     } catch (error) {
-      console.error(`[WooCommerce API] Error fetching product "${slug}":`, error);
+      console.error(
+        `[WooCommerce API] Error fetching product "${slug}":`,
+        error,
+      );
       throw new Error(`Failed to fetch product "${slug}" from WooCommerce`);
     }
   }
@@ -315,28 +335,35 @@ export class WooCommerceAPI {
     search?: string;
     parent?: number;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WooCommerceCategory[]> {
     try {
-      const response: AxiosResponse<WooCommerceCategory[]> = await this.client.get('/products/categories', {
-        params: {
-          ...params,
-        },
-      });
+      const response: AxiosResponse<WooCommerceCategory[]> =
+        await this.client.get("/products/categories", {
+          params: {
+            ...params,
+          },
+        });
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error fetching categories:', error);
-      throw new Error('Failed to fetch categories from WooCommerce');
+      console.error("[WooCommerce API] Error fetching categories:", error);
+      throw new Error("Failed to fetch categories from WooCommerce");
     }
   }
 
   async getCategory(categoryId: number): Promise<WooCommerceCategory> {
     try {
-      const response: AxiosResponse<WooCommerceCategory> = await this.client.get(`/products/categories/${categoryId}`);
+      const response: AxiosResponse<WooCommerceCategory> =
+        await this.client.get(`/products/categories/${categoryId}`);
       return response.data;
     } catch (error) {
-      console.error(`[WooCommerce API] Error fetching category ${categoryId}:`, error);
-      throw new Error(`Failed to fetch category ${categoryId} from WooCommerce`);
+      console.error(
+        `[WooCommerce API] Error fetching category ${categoryId}:`,
+        error,
+      );
+      throw new Error(
+        `Failed to fetch category ${categoryId} from WooCommerce`,
+      );
     }
   }
 
@@ -346,18 +373,21 @@ export class WooCommerceAPI {
     per_page?: number;
     search?: string;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WooCommerceTag[]> {
     try {
-      const response: AxiosResponse<WooCommerceTag[]> = await this.client.get('/products/tags', {
-        params: {
-          ...params,
+      const response: AxiosResponse<WooCommerceTag[]> = await this.client.get(
+        "/products/tags",
+        {
+          params: {
+            ...params,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error fetching tags:', error);
-      throw new Error('Failed to fetch tags from WooCommerce');
+      console.error("[WooCommerce API] Error fetching tags:", error);
+      throw new Error("Failed to fetch tags from WooCommerce");
     }
   }
 
@@ -369,86 +399,114 @@ export class WooCommerceAPI {
     customer?: number;
     product?: number;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WooCommerceOrder[]> {
     try {
-      const response: AxiosResponse<WooCommerceOrder[]> = await this.client.get('/orders', {
-        params: {
-          ...params,
+      const response: AxiosResponse<WooCommerceOrder[]> = await this.client.get(
+        "/orders",
+        {
+          params: {
+            ...params,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error fetching orders:', error);
-      throw new Error('Failed to fetch orders from WooCommerce');
+      console.error("[WooCommerce API] Error fetching orders:", error);
+      throw new Error("Failed to fetch orders from WooCommerce");
     }
   }
 
   async getOrder(orderId: number): Promise<WooCommerceOrder> {
     try {
-      const response: AxiosResponse<WooCommerceOrder> = await this.client.get(`/orders/${orderId}`);
+      const response: AxiosResponse<WooCommerceOrder> = await this.client.get(
+        `/orders/${orderId}`,
+      );
       return response.data;
     } catch (error) {
-      console.error(`[WooCommerce API] Error fetching order ${orderId}:`, error);
+      console.error(
+        `[WooCommerce API] Error fetching order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to fetch order ${orderId} from WooCommerce`);
     }
   }
 
-  async createOrder(orderData: Partial<WooCommerceOrder>): Promise<WooCommerceOrder> {
+  async createOrder(
+    orderData: Partial<WooCommerceOrder>,
+  ): Promise<WooCommerceOrder> {
     try {
-      const response: AxiosResponse<WooCommerceOrder> = await this.client.post('/orders', orderData);
+      const response: AxiosResponse<WooCommerceOrder> = await this.client.post(
+        "/orders",
+        orderData,
+      );
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error creating order:', error);
-      throw new Error('Failed to create order in WooCommerce');
+      console.error("[WooCommerce API] Error creating order:", error);
+      throw new Error("Failed to create order in WooCommerce");
     }
   }
 
-  async updateOrder(orderId: number, orderData: Partial<WooCommerceOrder>): Promise<WooCommerceOrder> {
+  async updateOrder(
+    orderId: number,
+    orderData: Partial<WooCommerceOrder>,
+  ): Promise<WooCommerceOrder> {
     try {
-      const response: AxiosResponse<WooCommerceOrder> = await this.client.put(`/orders/${orderId}`, orderData);
+      const response: AxiosResponse<WooCommerceOrder> = await this.client.put(
+        `/orders/${orderId}`,
+        orderData,
+      );
       return response.data;
     } catch (error) {
-      console.error(`[WooCommerce API] Error updating order ${orderId}:`, error);
+      console.error(
+        `[WooCommerce API] Error updating order ${orderId}:`,
+        error,
+      );
       throw new Error(`Failed to update order ${orderId} in WooCommerce`);
     }
   }
 
   // Search API
-  async searchProducts(query: string, params?: {
-    page?: number;
-    per_page?: number;
-    category?: number;
-    tag?: number;
-  }): Promise<WooCommerceProduct[]> {
+  async searchProducts(
+    query: string,
+    params?: {
+      page?: number;
+      per_page?: number;
+      category?: number;
+      tag?: number;
+    },
+  ): Promise<WooCommerceProduct[]> {
     try {
-      const response: AxiosResponse<WooCommerceProduct[]> = await this.client.get('/products', {
-        params: {
-          search: query,
-          ...params,
-        },
-      });
+      const response: AxiosResponse<WooCommerceProduct[]> =
+        await this.client.get("/products", {
+          params: {
+            search: query,
+            ...params,
+          },
+        });
       return response.data;
     } catch (error) {
-      console.error('[WooCommerce API] Error searching products:', error);
-      throw new Error('Failed to search products in WooCommerce');
+      console.error("[WooCommerce API] Error searching products:", error);
+      throw new Error("Failed to search products in WooCommerce");
     }
   }
 
   // Health check
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await this.client.get('/products');
+      const response = await this.client.get("/products");
       return response.status === 200;
     } catch (error) {
-      console.error('[WooCommerce API] Health check failed:', error);
+      console.error("[WooCommerce API] Health check failed:", error);
       return false;
     }
   }
 }
 
 // Default WooCommerce API instance
-export const createWooCommerceAPI = (config: WooCommerceConfig): WooCommerceAPI => {
+export const createWooCommerceAPI = (
+  config: WooCommerceConfig,
+): WooCommerceAPI => {
   return new WooCommerceAPI(config);
 };
 
@@ -457,17 +515,19 @@ let wooCommerceAPIInstance: WooCommerceAPI | null = null;
 
 export const getWooCommerceAPI = (): WooCommerceAPI => {
   if (!wooCommerceAPIInstance) {
-    const baseURL = process.env.WORDPRESS_API_URL || 'https://placeholder.com';
-    const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || 'placeholder_key';
-    const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || 'placeholder_secret';
-    
+    const baseURL = process.env.WORDPRESS_API_URL || "https://placeholder.com";
+    const consumerKey =
+      process.env.WOOCOMMERCE_CONSUMER_KEY || "placeholder_key";
+    const consumerSecret =
+      process.env.WOOCOMMERCE_CONSUMER_SECRET || "placeholder_secret";
+
     wooCommerceAPIInstance = createWooCommerceAPI({
       baseURL,
       consumerKey,
       consumerSecret,
       timeout: 10000,
-      version: '3',
+      version: "3",
     });
   }
   return wooCommerceAPIInstance;
-}; 
+};

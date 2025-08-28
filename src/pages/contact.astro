@@ -1,4 +1,25 @@
 ---
-// Redirect to English contact page
-return Astro.redirect('/en/contact');
+// Contact page redirect - static version
+import Layout from '../layouts/Layout.astro';
 ---
+
+<Layout title="Contact - KNX Store">
+  <head>
+    <meta http-equiv="refresh" content="0; url=/en/contact" />
+    <link rel="canonical" href="/en/contact" />
+  </head>
+  
+  <main>
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Contact</h1>
+      <p>Redirecting to contact page...</p>
+      <p>If you are not redirected automatically, <a href="/en/contact">click here</a>.</p>
+    </div>
+  </main>
+  
+  <script>
+    if (typeof window !== 'undefined') {
+      window.location.href = '/en/contact';
+    }
+  </script>
+</Layout>

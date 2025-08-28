@@ -1,12 +1,15 @@
-import axios from 'axios';
-import type { AxiosInstance } from 'axios';
-import { Redis } from '@upstash/redis';
+import axios from "axios";
+import type { AxiosInstance } from "axios";
+import { Redis } from "@upstash/redis";
 
 // Google Translate API integration
 const GOOGLE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
 
-async function translateText(text: string, targetLang: string): Promise<string> {
-  if (!GOOGLE_API_KEY || !text || targetLang === 'en') {
+async function translateText(
+  text: string,
+  targetLang: string,
+): Promise<string> {
+  if (!GOOGLE_API_KEY || !text || targetLang === "en") {
     return text;
   }
 
@@ -15,12 +18,12 @@ async function translateText(text: string, targetLang: string): Promise<string> 
     const response = await axios.post(url, {
       q: text,
       target: targetLang,
-      format: 'text',
+      format: "text",
     });
-    
+
     return response.data.data.translations[0].translatedText;
   } catch (error) {
-    console.error('Google Translate API error:', error);
+    console.error("Google Translate API error:", error);
     return text; // Return original text if translation fails
   }
 }
@@ -134,7 +137,7 @@ export interface WooCommerceConfig {
 export interface SyncStatus {
   lastSync: string;
   totalProducts: number;
-  status: 'success' | 'error' | 'fallback';
+  status: "success" | "error" | "fallback";
   error?: string;
   retryCount: number;
 }
@@ -148,7 +151,7 @@ export class WooCommerceSync {
 
   constructor(config: WooCommerceConfig) {
     this._config = config;
-    
+
     // Initialize Axios client with WooCommerce authentication
     this.client = axios.create({
       baseURL: config.baseURL,
@@ -158,8 +161,8 @@ export class WooCommerceSync {
         password: config.consumerSecret,
       },
       headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'KNX-Store-Sync/1.0',
+        "Content-Type": "application/json",
+        "User-Agent": "KNX-Store-Sync/1.0",
       },
     });
 
@@ -171,8 +174,8 @@ export class WooCommerceSync {
   }
 
   private initializeRedis(): void {
-    console.log('[WooCommerce Sync] Initializing Redis...');
-    console.log('[WooCommerce Sync] Environment variables:', {
+    console.log("[WooCommerce Sync] Initializing Redis...");
+    console.log("[WooCommerce Sync] Environment variables:", {
       UPSTASH_REDIS_REST_URL: !!process.env.UPSTASH_REDIS_REST_URL,
       UPSTASH_REDIS_REST_TOKEN: !!process.env.UPSTASH_REDIS_REST_TOKEN,
       NODE_ENV: process.env.NODE_ENV,
@@ -182,35 +185,49 @@ export class WooCommerceSync {
     // Try Upstash Redis first (for Vercel)
     const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
     const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-    
+
     if (upstashUrl && upstashToken) {
       try {
-        console.log('[WooCommerce Sync] Attempting to connect to Upstash Redis...');
+        console.log(
+          "[WooCommerce Sync] Attempting to connect to Upstash Redis...",
+        );
         this.redis = new Redis({
           url: upstashUrl,
           token: upstashToken,
         });
-        console.log('[WooCommerce Sync] Upstash Redis connected successfully');
+        console.log("[WooCommerce Sync] Upstash Redis connected successfully");
         return;
       } catch (error) {
-        console.error('[WooCommerce Sync] Failed to initialize Upstash Redis:', error);
+        console.error(
+          "[WooCommerce Sync] Failed to initialize Upstash Redis:",
+          error,
+        );
       }
     }
 
     // Fallback to local Redis (for development)
-    if (this._config.redis && process.env.NODE_ENV === 'development') {
+    if (this._config.redis && process.env.NODE_ENV === "development") {
       try {
-        console.log('[WooCommerce Sync] Attempting to connect to local Redis...');
+        console.log(
+          "[WooCommerce Sync] Attempting to connect to local Redis...",
+        );
         // For local development, we'll use a different approach
         // since Upstash Redis doesn't support the same interface as ioredis
-        console.log('[WooCommerce Sync] Local Redis not available in production, using fallback');
+        console.log(
+          "[WooCommerce Sync] Local Redis not available in production, using fallback",
+        );
         this.redis = null;
       } catch (error) {
-        console.error('[WooCommerce Sync] Failed to initialize local Redis:', error);
+        console.error(
+          "[WooCommerce Sync] Failed to initialize local Redis:",
+          error,
+        );
         this.redis = null;
       }
     } else {
-      console.log('[WooCommerce Sync] No Redis configuration available, setting to null');
+      console.log(
+        "[WooCommerce Sync] No Redis configuration available, setting to null",
+      );
       this.redis = null;
     }
   }
@@ -219,25 +236,33 @@ export class WooCommerceSync {
     // Request interceptor
     this.client.interceptors.request.use(
       (config) => {
-        console.log(`[WooCommerce Sync] Request: ${config.method?.toUpperCase()} ${config.url}`);
+        console.log(
+          `[WooCommerce Sync] Request: ${config.method?.toUpperCase()} ${config.url}`,
+        );
         return config;
       },
       (error) => {
-        console.error('[WooCommerce Sync] Request error:', error);
+        console.error("[WooCommerce Sync] Request error:", error);
         return Promise.reject(error);
-      }
+      },
     );
 
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        console.log(`[WooCommerce Sync] Response: ${response.status} ${response.config.url}`);
+        console.log(
+          `[WooCommerce Sync] Response: ${response.status} ${response.config.url}`,
+        );
         return response;
       },
       (error) => {
-        console.error('[WooCommerce Sync] Response error:', error.response?.status, error.message);
+        console.error(
+          "[WooCommerce Sync] Response error:",
+          error.response?.status,
+          error.message,
+        );
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -255,7 +280,19 @@ export class WooCommerceSync {
     lang?: string;
   }): Promise<WooCommerceProduct[]> {
     const cacheKey = `wc_products:${JSON.stringify(params || {})}`;
-    
+
+    // Check if we're using placeholder credentials (build mode or missing env vars)
+    const isPlaceholderMode =
+      this._config.consumerKey === "build_placeholder" ||
+      this._config.consumerSecret === "build_placeholder";
+
+    if (isPlaceholderMode) {
+      console.log(
+        "[WooCommerce Sync] Using fallback data - credentials not available",
+      );
+      return this.getFallbackProducts();
+    }
+
     // Try to get from cache first
     const cached = await this.getCached<WooCommerceProduct[]>(cacheKey);
     if (cached) {
@@ -269,118 +306,175 @@ export class WooCommerceSync {
 
     while (attempts < maxAttempts) {
       try {
-        console.log(`[WooCommerce Sync] Attempting to fetch products (attempt ${attempts + 1}/${maxAttempts})`);
-        
+        console.log(
+          `[WooCommerce Sync] Attempting to fetch products (attempt ${attempts + 1}/${maxAttempts})`,
+        );
+
         // Use fetch() instead of axios for better Vercel compatibility
         const apiUrl = `${this._config.baseURL}/products`;
         const searchParams = new URLSearchParams({
-          per_page: '100', // Maximum per page
+          per_page: "100", // Maximum allowed by WooCommerce
           ...Object.fromEntries(
-            Object.entries(params || {}).map(([key, value]) => [key, String(value)])
+            Object.entries(params || {})
+              .filter(
+                ([key, value]) =>
+                  value !== undefined &&
+                  value !== null &&
+                  value !== "undefined",
+              )
+              .map(([key, value]) => [key, String(value)]),
           ),
         });
-        
+
         const url = `${apiUrl}?${searchParams.toString()}`;
         console.log(`[WooCommerce Sync] Fetching from URL: ${url}`);
-        
+
         const response = await fetch(url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
-            'Content-Type': 'application/json',
+            Authorization: `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+            "Content-Type": "application/json",
           },
         });
 
-        console.log(`[WooCommerce Sync] Response status: ${response.status} ${response.statusText}`);
-        
+        console.log(
+          `[WooCommerce Sync] Response status: ${response.status} ${response.statusText}`,
+        );
+
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error(
+            `[WooCommerce Sync] API Error: ${response.status} ${response.statusText}`,
+            errorText,
+          );
+
+          // On auth errors (401/403) or bad request (400), try fallback after all retries
+          if (
+            response.status === 400 ||
+            response.status === 401 ||
+            response.status === 403
+          ) {
+            if (attempts === maxAttempts - 1) {
+              console.log(
+                "[WooCommerce Sync] Authentication failed, using fallback data",
+              );
+              return this.getFallbackProducts();
+            }
+          }
+
+          throw new Error(
+            `HTTP ${response.status}: ${response.statusText} - ${errorText}`,
+          );
         }
 
         const products: WooCommerceProduct[] = await response.json();
         console.log(`[WooCommerce Sync] Products received: ${products.length}`);
         console.log(`[WooCommerce Sync] First product:`, products[0]?.name);
-        
+
         // Performance optimization: Reduce scaling for faster loading
         let scaledProducts = products;
         if (params?.per_page && params.per_page > 50) {
           // Reduced scaling for better performance
-          const multiplier = Math.min(Math.ceil(params.per_page / products.length), 3); // Max 3x scaling
+          const multiplier = Math.min(
+            Math.ceil(params.per_page / products.length),
+            3,
+          ); // Max 3x scaling
           scaledProducts = [];
-          
+
           for (let i = 0; i < multiplier; i++) {
-            const duplicatedProducts = products.map((product: WooCommerceProduct, index: number) => ({
-              ...product,
-              id: product.id + (i * products.length) + index,
-              name: `${product.name} (Copy ${i + 1})`,
-              slug: `${product.slug}-copy-${i + 1}`,
-              permalink: `${product.permalink}copy-${i + 1}/`,
-            }));
+            const duplicatedProducts = products.map(
+              (product: WooCommerceProduct, index: number) => ({
+                ...product,
+                id: product.id + i * products.length + index,
+                name: `${product.name} (Copy ${i + 1})`,
+                slug: `${product.slug}-copy-${i + 1}`,
+                permalink: `${product.permalink}copy-${i + 1}/`,
+              }),
+            );
             scaledProducts.push(...duplicatedProducts);
           }
-          
+
           // Limit to requested per_page
           scaledProducts = scaledProducts.slice(0, params.per_page);
-          console.log(`[WooCommerce Sync] Scaled to ${scaledProducts.length} products for performance testing`);
+          console.log(
+            `[WooCommerce Sync] Scaled to ${scaledProducts.length} products for performance testing`,
+          );
         }
-        
+
         // Cache the result for 1 hour (3600 seconds) for better performance
         await this.setCached(cacheKey, scaledProducts, 3600);
-        
+
         // Update sync status
         await this.updateSyncStatus({
           lastSync: new Date().toISOString(),
           totalProducts: scaledProducts.length,
-          status: 'success',
+          status: "success",
           retryCount: attempts,
         });
 
         // Apply translations if language is specified
-        if (params?.lang && params.lang! !== 'en') {
-          console.log(`[WooCommerce Sync] Applying translations for language: ${params.lang!}`);
-          
+        if (params?.lang && params.lang! !== "en") {
+          console.log(
+            `[WooCommerce Sync] Applying translations for language: ${params.lang!}`,
+          );
+
           // Translate product names and descriptions
           const translatedProducts = await Promise.all(
             scaledProducts.map(async (product) => {
               // Check for WPML translations first
-              const wpmlName = product.meta_data?.find(m => m.key === `_${params.lang!}_name`)?.value;
-              const wpmlDescription = product.meta_data?.find(m => m.key === `_${params.lang!}_description`)?.value;
-              
+              const wpmlName = product.meta_data?.find(
+                (m) => m.key === `_${params.lang!}_name`,
+              )?.value;
+              const wpmlDescription = product.meta_data?.find(
+                (m) => m.key === `_${params.lang!}_description`,
+              )?.value;
+
               // Use WPML translation or fallback to Google Translate
-              const translatedName = wpmlName || await translateText(product.name, params.lang!!);
-              const translatedDescription = wpmlDescription || await translateText(product.description, params.lang!!);
-              
+              const translatedName =
+                wpmlName || (await translateText(product.name, params.lang!!));
+              const translatedDescription =
+                wpmlDescription ||
+                (await translateText(product.description, params.lang!!));
+
               return {
                 ...product,
                 name: translatedName,
                 description: translatedDescription,
               };
-            })
+            }),
           );
-          
-          console.log(`[WooCommerce Sync] Applied translations for ${translatedProducts.length} products`);
+
+          console.log(
+            `[WooCommerce Sync] Applied translations for ${translatedProducts.length} products`,
+          );
           return translatedProducts;
         }
 
-        console.log(`[WooCommerce Sync] Successfully fetched ${scaledProducts.length} products`);
+        console.log(
+          `[WooCommerce Sync] Successfully fetched ${scaledProducts.length} products`,
+        );
         return scaledProducts;
-
       } catch (error: any) {
         attempts++;
-        console.error(`[WooCommerce Sync] Attempt ${attempts}/${maxAttempts} failed:`, error.message);
+        console.error(
+          `[WooCommerce Sync] Attempt ${attempts}/${maxAttempts} failed:`,
+          error.message,
+        );
         console.error(`[WooCommerce Sync] Error details:`, {
           message: error.message,
           stack: error.stack,
         });
 
         if (attempts === maxAttempts) {
-          console.error('[WooCommerce Sync] Max retries reached, using fallback data');
-          
+          console.error(
+            "[WooCommerce Sync] Max retries reached, using fallback data",
+          );
+
           // Update sync status with error
           await this.updateSyncStatus({
             lastSync: new Date().toISOString(),
             totalProducts: 0,
-            status: 'error',
+            status: "error",
             error: error.message,
             retryCount: attempts,
           });
@@ -392,7 +486,7 @@ export class WooCommerceSync {
         // Exponential backoff
         const delay = baseDelay * Math.pow(2, attempts - 1);
         console.log(`[WooCommerce Sync] Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
@@ -405,7 +499,7 @@ export class WooCommerceSync {
    */
   async getProduct(productId: number): Promise<WooCommerceProduct> {
     const cacheKey = `wc_product:${productId}`;
-    
+
     // Try to get from cache first
     const cached = await this.getCached<WooCommerceProduct>(cacheKey);
     if (cached) {
@@ -416,12 +510,12 @@ export class WooCommerceSync {
       // Use fetch() instead of axios for better Vercel compatibility
       const url = `${this._config.baseURL}/products/${productId}`;
       console.log(`[WooCommerce Sync] Fetching product from URL: ${url}`);
-      
+
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
-          'Content-Type': 'application/json',
+          Authorization: `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -430,13 +524,16 @@ export class WooCommerceSync {
       }
 
       const product: WooCommerceProduct = await response.json();
-      
+
       // Cache the result for 5 minutes
       await this.setCached(cacheKey, product, 300);
-      
+
       return product;
     } catch (error: any) {
-      console.error(`[WooCommerce Sync] Error fetching product ${productId}:`, error.message);
+      console.error(
+        `[WooCommerce Sync] Error fetching product ${productId}:`,
+        error.message,
+      );
       throw new Error(`Failed to fetch product ${productId}: ${error.message}`);
     }
   }
@@ -446,19 +543,22 @@ export class WooCommerceSync {
    */
   startAutoSync(): void {
     if (this.syncInterval) {
-      console.log('[WooCommerce Sync] Auto sync already running');
+      console.log("[WooCommerce Sync] Auto sync already running");
       return;
     }
 
-    console.log('[WooCommerce Sync] Starting auto sync every 5 minutes');
-    
+    console.log("[WooCommerce Sync] Starting auto sync every 5 minutes");
+
     // Initial sync
     this.performSync();
-    
+
     // Set up interval
-    this.syncInterval = setInterval(() => {
-      this.performSync();
-    }, 5 * 60 * 1000); // 5 minutes
+    this.syncInterval = setInterval(
+      () => {
+        this.performSync();
+      },
+      5 * 60 * 1000,
+    ); // 5 minutes
   }
 
   /**
@@ -468,7 +568,7 @@ export class WooCommerceSync {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
-      console.log('[WooCommerce Sync] Auto sync stopped');
+      console.log("[WooCommerce Sync] Auto sync stopped");
     }
   }
 
@@ -477,18 +577,18 @@ export class WooCommerceSync {
    */
   private async performSync(): Promise<void> {
     if (this.isRunning) {
-      console.log('[WooCommerce Sync] Sync already in progress, skipping');
+      console.log("[WooCommerce Sync] Sync already in progress, skipping");
       return;
     }
 
     this.isRunning = true;
-    console.log('[WooCommerce Sync] Starting sync...');
+    console.log("[WooCommerce Sync] Starting sync...");
 
     try {
       await this.fetchProducts();
-      console.log('[WooCommerce Sync] Sync completed successfully');
+      console.log("[WooCommerce Sync] Sync completed successfully");
     } catch (error) {
-      console.error('[WooCommerce Sync] Sync failed:', error);
+      console.error("[WooCommerce Sync] Sync failed:", error);
     } finally {
       this.isRunning = false;
     }
@@ -498,28 +598,42 @@ export class WooCommerceSync {
    * Get sync status
    */
   async getSyncStatus(): Promise<SyncStatus | null> {
-    console.log('[WooCommerce Sync] getSyncStatus called, redis instance:', !!this.redis);
-    
+    console.log(
+      "[WooCommerce Sync] getSyncStatus called, redis instance:",
+      !!this.redis,
+    );
+
     if (!this.redis) {
-      console.log('[WooCommerce Sync] Redis not available, returning null');
+      console.log("[WooCommerce Sync] Redis not available, returning null");
       return null;
     }
 
     try {
-      console.log('[WooCommerce Sync] Attempting to get wc_sync_status from Redis');
-      const status = await this.redis.get('wc_sync_status');
-      console.log('[WooCommerce Sync] Raw status from Redis:', status);
-      
-      if (status) {
-        const parsedStatus = JSON.parse(status as string);
-        console.log('[WooCommerce Sync] Parsed sync status:', parsedStatus);
-        return parsedStatus;
+      console.log(
+        "[WooCommerce Sync] Attempting to get wc_sync_status from Redis",
+      );
+      const status = await this.redis.get("wc_sync_status");
+      console.log("[WooCommerce Sync] Raw status from Redis:", status);
+
+      if (!status) {
+        console.log("[WooCommerce Sync] No status found in Redis");
+        return null;
+      }
+
+      // Handle both string and object responses from Redis
+      if (typeof status === "string") {
+        return JSON.parse(status);
+      } else if (typeof status === "object") {
+        // Already parsed object from Redis
+        return status as SyncStatus;
       } else {
-        console.log('[WooCommerce Sync] No status found in Redis');
+        console.warn(
+          `[WooCommerce Sync] Unexpected sync status data type: ${typeof status}`,
+        );
         return null;
       }
     } catch (error) {
-      console.error('[WooCommerce Sync] Error getting sync status:', error);
+      console.error("[WooCommerce Sync] Error getting sync status:", error);
       return null;
     }
   }
@@ -531,9 +645,9 @@ export class WooCommerceSync {
     if (!this.redis) return;
 
     try {
-      await this.redis.setex('wc_sync_status', 3600, JSON.stringify(status)); // 1 hour TTL
+      await this.redis.setex("wc_sync_status", 3600, JSON.stringify(status)); // 1 hour TTL
     } catch (error) {
-      console.error('[WooCommerce Sync] Error updating sync status:', error);
+      console.error("[WooCommerce Sync] Error updating sync status:", error);
     }
   }
 
@@ -542,23 +656,49 @@ export class WooCommerceSync {
    */
   private async getCached<T>(key: string): Promise<T | null> {
     if (!this.redis) return null;
-    
+
     try {
       const cached = await this.redis.get(key);
-      return cached ? JSON.parse(cached as string) : null;
+      if (!cached) return null;
+
+      // Handle both string and object responses from Redis
+      if (typeof cached === "string") {
+        return JSON.parse(cached);
+      } else if (typeof cached === "object") {
+        // Already parsed object from Redis
+        return cached as T;
+      } else {
+        console.warn(
+          `[WooCommerce Sync] Unexpected cache data type: ${typeof cached}`,
+        );
+        return null;
+      }
     } catch (error) {
-      console.error(`[WooCommerce Sync] Cache get error for key ${key}:`, error);
+      console.error(
+        `[WooCommerce Sync] Cache get error for key ${key}:`,
+        error,
+      );
       return null;
     }
   }
 
-  private async setCached(key: string, data: any, ttl: number = 300): Promise<void> {
+  private async setCached(
+    key: string,
+    data: any,
+    ttl: number = 300,
+  ): Promise<void> {
     if (!this.redis) return;
-    
+
     try {
-      await this.redis.setex(key, ttl, JSON.stringify(data));
+      // Always stringify data for consistent storage
+      const serializedData =
+        typeof data === "string" ? data : JSON.stringify(data);
+      await this.redis.setex(key, ttl, serializedData);
     } catch (error) {
-      console.error(`[WooCommerce Sync] Cache set error for key ${key}:`, error);
+      console.error(
+        `[WooCommerce Sync] Cache set error for key ${key}:`,
+        error,
+      );
     }
   }
 
@@ -566,26 +706,27 @@ export class WooCommerceSync {
    * Fallback products when API fails
    */
   private getFallbackProducts(): WooCommerceProduct[] {
-    console.log('[WooCommerce Sync] Using fallback products');
-    
+    console.log("[WooCommerce Sync] Using fallback products");
+
     return [
       {
         id: 1,
-        name: 'KNX Smart Switch - Fallback',
-        slug: 'knx-smart-switch-fallback',
-        permalink: 'https://mohtavaly.com/product/knx-smart-switch-fallback/',
+        name: "KNX Smart Switch - Fallback",
+        slug: "knx-smart-switch-fallback",
+        permalink: "https://mohtavaly.com/product/knx-smart-switch-fallback/",
         date_created: new Date().toISOString(),
         date_modified: new Date().toISOString(),
-        type: 'simple',
-        status: 'publish',
+        type: "simple",
+        status: "publish",
         featured: false,
-        catalog_visibility: 'visible',
-        description: 'Fallback product - WooCommerce API temporarily unavailable',
-        short_description: 'Fallback product',
-        sku: 'FALLBACK-001',
-        price: '99.99',
-        regular_price: '99.99',
-        sale_price: '',
+        catalog_visibility: "visible",
+        description:
+          "Fallback product - WooCommerce API temporarily unavailable",
+        short_description: "Fallback product",
+        sku: "FALLBACK-001",
+        price: "99.99",
+        regular_price: "99.99",
+        sale_price: "",
         date_on_sale_from: null,
         date_on_sale_to: null,
         on_sale: false,
@@ -596,43 +737,43 @@ export class WooCommerceSync {
         downloads: [],
         download_limit: -1,
         download_expiry: -1,
-        tax_status: 'taxable',
-        tax_class: '',
+        tax_status: "taxable",
+        tax_class: "",
         manage_stock: false,
         stock_quantity: null,
-        stock_status: 'instock',
-        backorders: 'no',
+        stock_status: "instock",
+        backorders: "no",
         backorders_allowed: false,
         backordered: false,
         sold_individually: false,
-        weight: '0.5',
+        weight: "0.5",
         dimensions: {
-          length: '10',
-          width: '5',
-          height: '2',
+          length: "10",
+          width: "5",
+          height: "2",
         },
         shipping_required: true,
         shipping_taxable: true,
-        shipping_class: '',
+        shipping_class: "",
         shipping_class_id: 0,
         reviews_allowed: true,
-        average_rating: '0.00',
+        average_rating: "0.00",
         rating_count: 0,
         images: [
           {
             id: 1,
             date_created: new Date().toISOString(),
             date_modified: new Date().toISOString(),
-            src: 'https://picsum.photos/300/300?random=1',
-            name: 'Fallback Product',
-            alt: 'Fallback Product Image',
+            src: "https://picsum.photos/300/300?random=1",
+            name: "Fallback Product",
+            alt: "Fallback Product Image",
           },
         ],
         categories: [
           {
             id: 1,
-            name: 'KNX Products',
-            slug: 'knx-products',
+            name: "KNX Products",
+            slug: "knx-products",
           },
         ],
         tags: [],
@@ -641,8 +782,10 @@ export class WooCommerceSync {
         menu_order: 0,
         meta_data: [],
         _links: {
-          self: [{ href: 'https://mohtavaly.com/wp-json/wc/v3/products/1' }],
-          collection: [{ href: 'https://mohtavaly.com/wp-json/wc/v3/products' }],
+          self: [{ href: "https://mohtavaly.com/wp-json/wc/v3/products/1" }],
+          collection: [
+            { href: "https://mohtavaly.com/wp-json/wc/v3/products" },
+          ],
         },
       },
     ];
@@ -656,15 +799,15 @@ export class WooCommerceSync {
       // Use fetch() instead of axios for better Vercel compatibility
       const url = `${this._config.baseURL}/products?per_page=1`;
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Authorization': `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
-          'Content-Type': 'application/json',
+          Authorization: `Basic ${btoa(`${this._config.consumerKey}:${this._config.consumerSecret}`)}`,
+          "Content-Type": "application/json",
         },
       });
       return response.ok;
     } catch (error) {
-      console.error('[WooCommerce Sync] Health check failed:', error);
+      console.error("[WooCommerce Sync] Health check failed:", error);
       return false;
     }
   }
@@ -677,9 +820,9 @@ export class WooCommerceSync {
     if (this.redis) {
       try {
         // Upstash Redis doesn't have a quit method, just log the cleanup
-        console.log('[WooCommerce Sync] Redis cleanup completed');
+        console.log("[WooCommerce Sync] Redis cleanup completed");
       } catch (error) {
-        console.error('[WooCommerce Sync] Error during Redis cleanup:', error);
+        console.error("[WooCommerce Sync] Error during Redis cleanup:", error);
       }
     }
   }
@@ -688,45 +831,74 @@ export class WooCommerceSync {
 // Default WooCommerce sync instance
 let wooCommerceSyncInstance: WooCommerceSync | null = null;
 
-export const createWooCommerceSync = (config: WooCommerceConfig): WooCommerceSync => {
+export const createWooCommerceSync = (
+  config: WooCommerceConfig,
+): WooCommerceSync => {
   return new WooCommerceSync(config);
 };
 
 export const getWooCommerceSync = (): WooCommerceSync => {
   if (!wooCommerceSyncInstance) {
-    const baseURL = process.env.WOOCOMMERCE_API_URL || 'https://mohtavaly.com/wp-json/wc/v3';
-    const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || '';
-    const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || '';
+    const baseURL =
+      process.env.WOOCOMMERCE_API_URL || "https://mohtavaly.com/wp-json/wc/v3";
+    const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || "";
+    const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || "";
+    const allowBuildWithoutApi = process.env.ALLOW_BUILD_WITHOUT_API === "true";
+    const isVercel = process.env.VERCEL === "1" || process.env.VERCEL_ENV;
+    const isProduction = process.env.NODE_ENV === "production";
 
-    console.log('[WooCommerce Sync] Environment check:', {
+    console.log("[WooCommerce Sync] Environment check:", {
       baseURL,
-      consumerKey: consumerKey ? 'SET' : 'NOT SET',
-      consumerSecret: consumerSecret ? 'SET' : 'NOT SET',
+      consumerKey: consumerKey ? "SET" : "NOT SET",
+      consumerSecret: consumerSecret ? "SET" : "NOT SET",
+      allowBuildWithoutApi,
+      isVercel,
+      isProduction,
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV,
     });
 
+    // On Vercel production, always try to use real credentials or fallback gracefully
     if (!consumerKey || !consumerSecret) {
-      console.error('[WooCommerce Sync] Missing credentials:', {
-        consumerKey: !!consumerKey,
-        consumerSecret: !!consumerSecret,
+      if (allowBuildWithoutApi || isVercel) {
+        console.log(
+          "[WooCommerce Sync] Creating instance with placeholders - will use fallback data",
+        );
+        console.log(
+          "[WooCommerce Sync] This is expected during build or when credentials are not available",
+        );
+
+        wooCommerceSyncInstance = createWooCommerceSync({
+          baseURL,
+          consumerKey: "build_placeholder",
+          consumerSecret: "build_placeholder",
+          timeout: 10000,
+          redis: {
+            host: process.env.REDIS_HOST || "localhost",
+            port: parseInt(process.env.REDIS_PORT || "6379"),
+            password: process.env.REDIS_PASSWORD,
+          },
+        });
+      } else {
+        const errorMsg = isVercel
+          ? "WooCommerce API credentials not found in Vercel environment variables. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your Vercel project settings."
+          : "WooCommerce API credentials are required. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your .env file.";
+        throw new Error(errorMsg);
+      }
+    } else {
+      console.log("[WooCommerce Sync] Creating instance with real credentials");
+      wooCommerceSyncInstance = createWooCommerceSync({
+        baseURL,
+        consumerKey,
+        consumerSecret,
+        timeout: 10000,
+        redis: {
+          host: process.env.REDIS_HOST || "localhost",
+          port: parseInt(process.env.REDIS_PORT || "6379"),
+          password: process.env.REDIS_PASSWORD,
+        },
       });
-      throw new Error('WooCommerce API credentials not configured. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET environment variables.');
     }
-
-    console.log('[WooCommerce Sync] Creating instance with URL:', baseURL);
-
-    wooCommerceSyncInstance = createWooCommerceSync({
-      baseURL,
-      consumerKey,
-      consumerSecret,
-      timeout: 10000,
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
-        password: process.env.REDIS_PASSWORD,
-      },
-    });
   }
   return wooCommerceSyncInstance;
-}; 
+};

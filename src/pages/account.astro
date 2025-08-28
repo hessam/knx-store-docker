@@ -1,4 +1,25 @@
 ---
-// Redirect to English account page
-return Astro.redirect('/en/account');
+// Account page redirect - static version
+import Layout from '../layouts/Layout.astro';
 ---
+
+<Layout title="Account - KNX Store">
+  <head>
+    <meta http-equiv="refresh" content="0; url=/en/account" />
+    <link rel="canonical" href="/en/account" />
+  </head>
+  
+  <main>
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Account</h1>
+      <p>Redirecting to account page...</p>
+      <p>If you are not redirected automatically, <a href="/en/account">click here</a>.</p>
+    </div>
+  </main>
+  
+  <script>
+    if (typeof window !== 'undefined') {
+      window.location.href = '/en/account';
+    }
+  </script>
+</Layout>

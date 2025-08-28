@@ -1,5 +1,5 @@
-import React from 'react';
-import type { WooCommerceProduct } from '../lib/api/woocommerce';
+import React from "react";
+import type { WooCommerceProduct } from "../lib/api/woocommerce";
 
 export interface ProductCardProps {
   product: WooCommerceProduct;
@@ -14,7 +14,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   showDescription = true,
   showPrice = true,
   showAddToCart = true,
-  className = '',
+  className = "",
 }) => {
   // Extract product data
   const {
@@ -31,14 +31,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   } = product;
 
   // Format content
-  const formattedDescription = showDescription 
-    ? (short_description || description || '').replace(/<[^>]*>/g, '').substring(0, 120)
-    : '';
+  const formattedDescription = showDescription
+    ? (short_description || description || "")
+        .replace(/<[^>]*>/g, "")
+        .substring(0, 120)
+    : "";
 
   // Get product image
-  const productImage = images && images.length > 0 
-    ? images[0].src 
-    : '/placeholder-product.jpg';
+  const productImage =
+    images && images.length > 0 ? images[0].src : "/placeholder-product.jpg";
 
   // Price display
   const displayPrice = on_sale && sale_price ? sale_price : price;
@@ -46,13 +47,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   // Format price
   const formatPrice = (price: string | number) => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numPrice)) return '';
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
+    if (isNaN(numPrice)) return "";
     return `$${numPrice.toFixed(2)}`;
   };
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ${className}`}>
+    <div
+      className={`bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-200 ${className}`}
+    >
       <div className="flex flex-col h-full">
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
@@ -114,4 +117,4 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </div>
   );
-}; 
+};

@@ -1,6 +1,6 @@
-import axios from 'axios';
-import type { AxiosInstance, AxiosResponse } from 'axios';
-import Redis from 'ioredis';
+import axios from "axios";
+import type { AxiosInstance, AxiosResponse } from "axios";
+import Redis from "ioredis";
 
 // Types for WordPress API responses
 export interface WordPressPost {
@@ -141,7 +141,7 @@ export class WordPressAPI {
 
   constructor(config: WordPressConfig) {
     // this._config = config; // Unused in this implementation
-    
+
     // Initialize Redis if configured
     if (config.redis) {
       this.redis = new Redis({
@@ -152,12 +152,12 @@ export class WordPressAPI {
         maxRetriesPerRequest: 3,
       } as any);
     }
-    
+
     this.client = axios.create({
       baseURL: config.baseURL,
       timeout: config.timeout || 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...config.headers,
       },
     });
@@ -165,25 +165,33 @@ export class WordPressAPI {
     // Add request interceptor for logging
     this.client.interceptors.request.use(
       (config) => {
-        console.log(`[WordPress API] Request: ${config.method?.toUpperCase()} ${config.url}`);
+        console.log(
+          `[WordPress API] Request: ${config.method?.toUpperCase()} ${config.url}`,
+        );
         return config;
       },
       (error) => {
-        console.error('[WordPress API] Request Error:', error);
+        console.error("[WordPress API] Request Error:", error);
         return Promise.reject(error);
-      }
+      },
     );
 
     // Add response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => {
-        console.log(`[WordPress API] Response: ${response.status} ${response.config.url}`);
+        console.log(
+          `[WordPress API] Response: ${response.status} ${response.config.url}`,
+        );
         return response;
       },
       (error) => {
-        console.error('[WordPress API] Response Error:', error.response?.status, error.response?.data);
+        console.error(
+          "[WordPress API] Response Error:",
+          error.response?.status,
+          error.response?.data,
+        );
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -196,35 +204,45 @@ export class WordPressAPI {
     tags?: number[];
     author?: number;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WordPressPost[]> {
     try {
-      const response: AxiosResponse<WordPressPost[]> = await this.client.get('/wp/v2/posts', {
-        params: {
-          _embed: true,
-          ...params,
+      const response: AxiosResponse<WordPressPost[]> = await this.client.get(
+        "/wp/v2/posts",
+        {
+          params: {
+            _embed: true,
+            ...params,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
-      console.error('[WordPress API] Error fetching posts:', error);
-      throw new Error('Failed to fetch posts from WordPress');
+      console.error("[WordPress API] Error fetching posts:", error);
+      throw new Error("Failed to fetch posts from WordPress");
     }
   }
 
   async getPost(slug: string): Promise<WordPressPost> {
     try {
-      const response: AxiosResponse<WordPressPost> = await this.client.get(`/wp/v2/posts`, {
-        params: {
-          slug,
-          _embed: true,
+      const response: AxiosResponse<WordPressPost> = await this.client.get(
+        `/wp/v2/posts`,
+        {
+          params: {
+            slug,
+            _embed: true,
+          },
         },
-      });
-      
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      );
+
+      if (
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
         return response.data[0];
       }
-      
+
       throw new Error(`Post with slug "${slug}" not found`);
     } catch (error) {
       console.error(`[WordPress API] Error fetching post "${slug}":`, error);
@@ -239,35 +257,45 @@ export class WordPressAPI {
     search?: string;
     parent?: number;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WordPressPage[]> {
     try {
-      const response: AxiosResponse<WordPressPage[]> = await this.client.get('/wp/v2/pages', {
-        params: {
-          _embed: true,
-          ...params,
+      const response: AxiosResponse<WordPressPage[]> = await this.client.get(
+        "/wp/v2/pages",
+        {
+          params: {
+            _embed: true,
+            ...params,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
-      console.error('[WordPress API] Error fetching pages:', error);
-      throw new Error('Failed to fetch pages from WordPress');
+      console.error("[WordPress API] Error fetching pages:", error);
+      throw new Error("Failed to fetch pages from WordPress");
     }
   }
 
   async getPage(slug: string): Promise<WordPressPage> {
     try {
-      const response: AxiosResponse<WordPressPage> = await this.client.get(`/wp/v2/pages`, {
-        params: {
-          slug,
-          _embed: true,
+      const response: AxiosResponse<WordPressPage> = await this.client.get(
+        `/wp/v2/pages`,
+        {
+          params: {
+            slug,
+            _embed: true,
+          },
         },
-      });
-      
-      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+      );
+
+      if (
+        response.data &&
+        Array.isArray(response.data) &&
+        response.data.length > 0
+      ) {
         return response.data[0];
       }
-      
+
       throw new Error(`Page with slug "${slug}" not found`);
     } catch (error) {
       console.error(`[WordPress API] Error fetching page "${slug}":`, error);
@@ -278,7 +306,9 @@ export class WordPressAPI {
   // Media API
   async getMedia(mediaId: number): Promise<WordPressMedia> {
     try {
-      const response: AxiosResponse<WordPressMedia> = await this.client.get(`/wp/v2/media/${mediaId}`);
+      const response: AxiosResponse<WordPressMedia> = await this.client.get(
+        `/wp/v2/media/${mediaId}`,
+      );
       return response.data;
     } catch (error) {
       console.error(`[WordPress API] Error fetching media ${mediaId}:`, error);
@@ -289,34 +319,39 @@ export class WordPressAPI {
   // Categories API
   async getCategories(): Promise<any[]> {
     try {
-      const response: AxiosResponse<any[]> = await this.client.get('/wp/v2/categories');
+      const response: AxiosResponse<any[]> =
+        await this.client.get("/wp/v2/categories");
       return response.data;
     } catch (error) {
-      console.error('[WordPress API] Error fetching categories:', error);
-      throw new Error('Failed to fetch categories from WordPress');
+      console.error("[WordPress API] Error fetching categories:", error);
+      throw new Error("Failed to fetch categories from WordPress");
     }
   }
 
   // Tags API
   async getTags(): Promise<any[]> {
     try {
-      const response: AxiosResponse<any[]> = await this.client.get('/wp/v2/tags');
+      const response: AxiosResponse<any[]> =
+        await this.client.get("/wp/v2/tags");
       return response.data;
     } catch (error) {
-      console.error('[WordPress API] Error fetching tags:', error);
-      throw new Error('Failed to fetch tags from WordPress');
+      console.error("[WordPress API] Error fetching tags:", error);
+      throw new Error("Failed to fetch tags from WordPress");
     }
   }
 
   // Search API
-  async search(query: string, type: 'post' | 'page' = 'post'): Promise<any[]> {
+  async search(query: string, type: "post" | "page" = "post"): Promise<any[]> {
     try {
-      const response: AxiosResponse<any[]> = await this.client.get(`/wp/v2/${type}s`, {
-        params: {
-          search: query,
-          _embed: true,
+      const response: AxiosResponse<any[]> = await this.client.get(
+        `/wp/v2/${type}s`,
+        {
+          params: {
+            search: query,
+            _embed: true,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
       console.error(`[WordPress API] Error searching ${type}s:`, error);
@@ -327,7 +362,7 @@ export class WordPressAPI {
   // Caching methods
   private async getCached<T>(key: string): Promise<T | null> {
     if (!this.redis) return null;
-    
+
     try {
       const cached = await this.redis.get(key);
       return cached ? JSON.parse(cached) : null;
@@ -337,11 +372,15 @@ export class WordPressAPI {
     }
   }
 
-  private async setCached(key: string, data: any, ttl: number = 300): Promise<void> {
+  private async setCached(
+    key: string,
+    data: any,
+    ttl: number = 300,
+  ): Promise<void> {
     if (!this.redis) return;
-    
+
     try {
-      await this.redis.set(key, JSON.stringify(data), 'EX', ttl);
+      await this.redis.set(key, JSON.stringify(data), "EX", ttl);
     } catch (error) {
       console.error(`[WordPress API] Cache set error for key ${key}:`, error);
     }
@@ -356,10 +395,10 @@ export class WordPressAPI {
     tags?: number[];
     author?: number;
     orderby?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<WordPressPost[]> {
     const cacheKey = `products:${JSON.stringify(params || {})}`;
-    
+
     // Try to get from cache first
     const cached = await this.getCached<WordPressPost[]>(cacheKey);
     if (cached) {
@@ -368,30 +407,33 @@ export class WordPressAPI {
     }
 
     try {
-      const response: AxiosResponse<WordPressPost[]> = await this.client.get('/wp/v2/posts', {
-        params: {
-          _embed: true,
-          ...params,
+      const response: AxiosResponse<WordPressPost[]> = await this.client.get(
+        "/wp/v2/posts",
+        {
+          params: {
+            _embed: true,
+            ...params,
+          },
         },
-      });
-      
+      );
+
       // Cache the result for 5 minutes
       await this.setCached(cacheKey, response.data, 300);
-      
+
       return response.data;
     } catch (error) {
-      console.error('[WordPress API] Error fetching products:', error);
-      throw new Error('Failed to fetch products from WordPress');
+      console.error("[WordPress API] Error fetching products:", error);
+      throw new Error("Failed to fetch products from WordPress");
     }
   }
 
   // Health check
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await this.client.get('/wp/v2/');
+      const response = await this.client.get("/wp/v2/");
       return response.status === 200;
     } catch (error) {
-      console.error('[WordPress API] Health check failed:', error);
+      console.error("[WordPress API] Health check failed:", error);
       return false;
     }
   }
@@ -407,16 +449,17 @@ let wordPressAPIInstance: WordPressAPI | null = null;
 
 export const getWordPressAPI = (): WordPressAPI => {
   if (!wordPressAPIInstance) {
-    const baseURL = process.env.WORDPRESS_API_URL || 'https://placeholder.com/wp-json';
+    const baseURL =
+      process.env.WORDPRESS_API_URL || "https://placeholder.com/wp-json";
     wordPressAPIInstance = createWordPressAPI({
       baseURL,
       timeout: 10000,
       redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379'),
+        host: process.env.REDIS_HOST || "localhost",
+        port: parseInt(process.env.REDIS_PORT || "6379"),
         password: process.env.REDIS_PASSWORD,
       },
     });
   }
   return wordPressAPIInstance;
-}; 
+};
