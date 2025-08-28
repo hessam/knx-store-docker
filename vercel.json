@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "name": "knx-store",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps",
+  "devCommand": "npm run dev",
+  "framework": "astro",
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@20.x"
