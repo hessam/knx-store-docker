@@ -68,7 +68,7 @@ export const GET: APIRoute = async ({ url }) => {
 
     // Fetch products with filters (with caching) - use cleaned params
     const allProducts = await wooCommerceSync.fetchProducts({
-      per_page: 1000, // Get more products for better filtering
+      per_page: 100, // Maximum allowed by WooCommerce API
       search: cleanParams.q,
       category: cleanParams.category,
       tag: cleanParams.tag,

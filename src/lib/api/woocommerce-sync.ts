@@ -256,6 +256,15 @@ export class WooCommerceSync {
   }): Promise<WooCommerceProduct[]> {
     const cacheKey = `wc_products:${JSON.stringify(params || {})}`;
     
+    // Check if we're using placeholder credentials (build mode or missing env vars)
+    const isPlaceholderMode = this._config.consumerKey === 'build_placeholder' || 
+                             this._config.consumerSecret === 'build_placeholder';
+    
+    if (isPlaceholderMode) {
+      console.log('[WooCommerce Sync] Using fallback data - credentials not available');
+      return this.getFallbackProducts();
+    }
+    
     // Try to get from cache first
     const cached = await this.getCached<WooCommerceProduct[]>(cacheKey);
     if (cached) {
@@ -274,9 +283,11 @@ export class WooCommerceSync {
         // Use fetch() instead of axios for better Vercel compatibility
         const apiUrl = `${this._config.baseURL}/products`;
         const searchParams = new URLSearchParams({
-          per_page: '100', // Maximum per page
+          per_page: '100', // Maximum allowed by WooCommerce
           ...Object.fromEntries(
-            Object.entries(params || {}).map(([key, value]) => [key, String(value)])
+            Object.entries(params || {}).filter(([key, value]) => 
+              value !== undefined && value !== null && value !== 'undefined'
+            ).map(([key, value]) => [key, String(value)])
           ),
         });
         
@@ -294,7 +305,18 @@ export class WooCommerceSync {
         console.log(`[WooCommerce Sync] Response status: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorText = await response.text();
+          console.error(`[WooCommerce Sync] API Error: ${response.status} ${response.statusText}`, errorText);
+          
+          // On auth errors (401/403) or bad request (400), try fallback after all retries
+          if (response.status === 400 || response.status === 401 || response.status === 403) {
+            if (attempts === maxAttempts - 1) {
+              console.log('[WooCommerce Sync] Authentication failed, using fallback data');
+              return this.getFallbackProducts();
+            }
+          }
+          
+          throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
         }
 
         const products: WooCommerceProduct[] = await response.json();
@@ -510,12 +532,19 @@ export class WooCommerceSync {
       const status = await this.redis.get('wc_sync_status');
       console.log('[WooCommerce Sync] Raw status from Redis:', status);
       
-      if (status) {
-        const parsedStatus = JSON.parse(status as string);
-        console.log('[WooCommerce Sync] Parsed sync status:', parsedStatus);
-        return parsedStatus;
-      } else {
+      if (!status) {
         console.log('[WooCommerce Sync] No status found in Redis');
+        return null;
+      }
+      
+      // Handle both string and object responses from Redis
+      if (typeof status === 'string') {
+        return JSON.parse(status);
+      } else if (typeof status === 'object') {
+        // Already parsed object from Redis
+        return status as SyncStatus;
+      } else {
+        console.warn(`[WooCommerce Sync] Unexpected sync status data type: ${typeof status}`);
         return null;
       }
     } catch (error) {
@@ -545,7 +574,18 @@ export class WooCommerceSync {
     
     try {
       const cached = await this.redis.get(key);
-      return cached ? JSON.parse(cached as string) : null;
+      if (!cached) return null;
+      
+      // Handle both string and object responses from Redis
+      if (typeof cached === 'string') {
+        return JSON.parse(cached);
+      } else if (typeof cached === 'object') {
+        // Already parsed object from Redis
+        return cached as T;
+      } else {
+        console.warn(`[WooCommerce Sync] Unexpected cache data type: ${typeof cached}`);
+        return null;
+      }
     } catch (error) {
       console.error(`[WooCommerce Sync] Cache get error for key ${key}:`, error);
       return null;
@@ -556,7 +596,9 @@ export class WooCommerceSync {
     if (!this.redis) return;
     
     try {
-      await this.redis.setex(key, ttl, JSON.stringify(data));
+      // Always stringify data for consistent storage
+      const serializedData = typeof data === 'string' ? data : JSON.stringify(data);
+      await this.redis.setex(key, ttl, serializedData);
     } catch (error) {
       console.error(`[WooCommerce Sync] Cache set error for key ${key}:`, error);
     }
@@ -698,19 +740,26 @@ export const getWooCommerceSync = (): WooCommerceSync => {
     const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || '';
     const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || '';
     const allowBuildWithoutApi = process.env.ALLOW_BUILD_WITHOUT_API === 'true';
+    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL_ENV;
+    const isProduction = process.env.NODE_ENV === 'production';
 
     console.log('[WooCommerce Sync] Environment check:', {
       baseURL,
       consumerKey: consumerKey ? 'SET' : 'NOT SET',
       consumerSecret: consumerSecret ? 'SET' : 'NOT SET',
       allowBuildWithoutApi,
+      isVercel,
+      isProduction,
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV,
     });
 
+    // On Vercel production, always try to use real credentials or fallback gracefully
     if (!consumerKey || !consumerSecret) {
-      if (allowBuildWithoutApi) {
-        console.log('[WooCommerce Sync] Creating instance with placeholders for build - will use fallback data');
+      if (allowBuildWithoutApi || isVercel) {
+        console.log('[WooCommerce Sync] Creating instance with placeholders - will use fallback data');
+        console.log('[WooCommerce Sync] This is expected during build or when credentials are not available');
+        
         wooCommerceSyncInstance = createWooCommerceSync({
           baseURL,
           consumerKey: 'build_placeholder',
@@ -723,7 +772,10 @@ export const getWooCommerceSync = (): WooCommerceSync => {
           },
         });
       } else {
-        throw new Error('WooCommerce API credentials are required. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your .env file.');
+        const errorMsg = isVercel 
+          ? 'WooCommerce API credentials not found in Vercel environment variables. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your Vercel project settings.'
+          : 'WooCommerce API credentials are required. Please set WOOCOMMERCE_CONSUMER_KEY and WOOCOMMERCE_CONSUMER_SECRET in your .env file.';
+        throw new Error(errorMsg);
       }
     } else {
       console.log('[WooCommerce Sync] Creating instance with real credentials');
