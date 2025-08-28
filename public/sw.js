@@ -60,6 +60,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Skip cache for extension URLs and non-http(s) schemes
+  if (!request.url.startsWith('http') || request.url.includes('chrome-extension')) {
+    return;
+  }
+
   // Handle API requests with network-first strategy
   if (request.url.includes("/api/")) {
     event.respondWith(

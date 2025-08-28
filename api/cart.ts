@@ -28,10 +28,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { sessionId } = req.query;
+    // Get sessionId from query (GET) or body (POST/PUT/DELETE)
+    let sessionId = req.query.sessionId as string;
+    
+    if (!sessionId && req.body && req.body.sessionId) {
+      sessionId = req.body.sessionId;
+    }
     
     if (!sessionId || typeof sessionId !== 'string') {
-      return res.status(400).json({ error: 'sessionId required' });
+      return res.status(400).json({ 
+        error: 'sessionId required',
+        metadata: {
+          responseTime: Date.now() - startTime,
+          timestamp: new Date().toISOString()
+        }
+      });
     }
     
     // Dynamic import with build compatibility

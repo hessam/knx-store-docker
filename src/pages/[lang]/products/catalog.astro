@@ -563,7 +563,7 @@ const structuredData = {
             <p class="text-gray-600 text-sm mb-3 line-clamp-3">${product.description || ''}</p>
             <div class="flex justify-between items-center">
               ${priceHtml}
-              <a href="${product.permalink}" 
+              <a href="/${lang}/products/${product.slug}" 
                  class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                  data-track-event="product_click"
                  data-track-category="product_catalog"
