@@ -126,8 +126,11 @@ GET /api/products/* - Cached responses
 Open browser console and run:
 
 ```javascript
-// Test 1: Get empty cart
+// Define sessionId first (run this first)
 const sessionId = 'test-session-' + Date.now();
+console.log('Using sessionId:', sessionId);
+
+// Test 1: Get empty cart
 fetch(`/api/cart?sessionId=${sessionId}`)
   .then(r => r.json())
   .then(data => {
