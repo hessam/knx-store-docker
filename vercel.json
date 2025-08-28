@@ -8,7 +8,7 @@
   "framework": null,
   "functions": {
     "src/pages/api/**/*.ts": {
-      "runtime": "@vercel/node"
+      "runtime": "@vercel/node@3.0.7"
     }
   },
   "redirects": [
