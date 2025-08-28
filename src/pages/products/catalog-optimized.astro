@@ -1,4 +1,25 @@
 ---
-// Redirect to English catalog page
-return Astro.redirect('/en/products/catalog-optimized');
+// Catalog page redirect - static version
+import Layout from '../../layouts/Layout.astro';
 ---
+
+<Layout title="Product Catalog - KNX Store">
+  <head>
+    <meta http-equiv="refresh" content="0; url=/en/products/catalog-optimized" />
+    <link rel="canonical" href="/en/products/catalog-optimized" />
+  </head>
+  
+  <main>
+    <div style="text-align: center; padding: 2rem;">
+      <h1>Product Catalog</h1>
+      <p>Redirecting to product catalog...</p>
+      <p>If you are not redirected automatically, <a href="/en/products/catalog-optimized">click here</a>.</p>
+    </div>
+  </main>
+  
+  <script>
+    if (typeof window !== 'undefined') {
+      window.location.href = '/en/products/catalog-optimized';
+    }
+  </script>
+</Layout>

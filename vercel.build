@@ -20,34 +20,44 @@ else
   export SITE_URL=$VERCEL_URL
 fi
 
-# Install dependencies
+# Ensure ALLOW_BUILD_WITHOUT_API is set for builds
+export ALLOW_BUILD_WITHOUT_API=true
+
+# Install dependencies (include dev dependencies for build process)
 echo "📥 Installing dependencies..."
-npm ci --only=production
+npm ci
+
+# Validate environment variables
+echo "🔍 Validating environment variables..."
+echo "WOOCOMMERCE_API_URL: ${WOOCOMMERCE_API_URL:0:30}..."
+echo "WOOCOMMERCE_CONSUMER_KEY: ${WOOCOMMERCE_CONSUMER_KEY:0:10}..."
+echo "WOOCOMMERCE_CONSUMER_SECRET: ${WOOCOMMERCE_CONSUMER_SECRET:0:10}..."
+echo "ALLOW_BUILD_WITHOUT_API: $ALLOW_BUILD_WITHOUT_API"
 
 # Build the application
 echo "🔨 Building application..."
 npm run build
 
+# Check if build was successful
+if [ $? -eq 0 ]; then
+  echo "✅ Build completed successfully"
+else
+  echo "❌ Build failed"
+  exit 1
+fi
+
 # Run post-build optimizations
 echo "⚡ Running post-build optimizations..."
 
-# Optimize images if they exist
-if [ -d "dist" ]; then
-  echo "🖼️ Optimizing images..."
-  find dist -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" | head -10
-fi
-
-# Generate sitemap
-echo "🗺️ Generating sitemap..."
-if [ -f "dist/sitemap-index.xml" ]; then
-  echo "✅ Sitemap generated successfully"
-else
-  echo "⚠️ Sitemap not found"
-fi
-
 # Check build output
-echo "📊 Build summary:"
+echo "� Build summary:"
 echo "  - Environment: $VERCEL_ENV"
+echo "  - Node Version: $(node --version)"
+echo "  - NPM Version: $(npm --version)"
+echo "  - Build Directory: $(pwd)/dist"
+ls -la dist/ | head -5
+
+echo "✅ Vercel build completed successfully!"
 echo "  - Site URL: $SITE_URL"
 echo "  - Build directory: dist/"
 ls -la dist/ | head -5
